@@ -2,7 +2,5 @@
   "name": "Infanta National High School Portal",
   "description": "Official website and academic management portal for Infanta National High School (Quezon, Philippines) featuring online enrollment, student profiles, grading, and school updates.",
   "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
