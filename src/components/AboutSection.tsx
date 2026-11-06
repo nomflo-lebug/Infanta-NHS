@@ -64,7 +64,7 @@ export const AboutSection: React.FC = () => {
             Infanta National High School
           </h2>
           <p className="text-base text-slate-600 mt-3 leading-relaxed">
-            Established in 1966 in the coastal municipality of Infanta, Quezon, our school stands as the beacon of secondary education, empowering generations of scholars and builders across the Pacific seaboard.
+            Established in 1947 in the coastal municipality of Infanta, Quezon, our school stands as the beacon of secondary education, empowering generations of scholars and builders across the Pacific seaboard.
           </p>
         </div>
 
@@ -131,6 +131,9 @@ export const AboutSection: React.FC = () => {
                   <div>Established: <strong className="text-slate-900 font-mono-num">1947</strong></div>
                   <div>Classification: <strong className="text-slate-900">Public Secondary</strong></div>
                   <div>Accreditation: <strong className="text-slate-900">DepEd & TESDA</strong></div>
+                  <div>Official Enrollment: <strong className="text-slate-900 font-mono-num">4,428 Learners</strong></div>
+                  <div>Personnel: <strong className="text-slate-900 font-mono-num">200+ Staff</strong></div>
+                  <div>Current Term: <strong className="text-slate-900 font-mono-num">S.Y. 2026–2027</strong></div>
                 </div>
               </div>
             </div>

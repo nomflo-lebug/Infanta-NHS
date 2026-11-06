@@ -160,14 +160,14 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
         {/* 4-Metric Institutional Proof Strip */}
         <div className="mt-14 pt-8 border-t border-slate-800/80 grid grid-cols-2 md:grid-cols-4 gap-6">
           <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold font-mono-num text-amber-400">3,450+</div>
-            <div className="text-xs text-slate-300 font-medium">Enrolled Learners</div>
-            <div className="text-[11px] text-slate-500">Junior & Senior High School</div>
+            <div className="text-2xl sm:text-3xl font-bold font-mono-num text-amber-400">4,428</div>
+            <div className="text-xs text-slate-300 font-medium">Officially Enrolled Learners</div>
+            <div className="text-[11px] text-slate-500">S.Y. 2026–2027 (JHS & SHS)</div>
           </div>
           <div className="space-y-1">
-            <div className="text-2xl sm:text-3xl font-bold font-mono-num text-blue-400">120+</div>
-            <div className="text-xs text-slate-300 font-medium">Licensed Faculty</div>
-            <div className="text-[11px] text-slate-500">Master Teachers & Specialists</div>
+            <div className="text-2xl sm:text-3xl font-bold font-mono-num text-blue-400">200+</div>
+            <div className="text-xs text-slate-300 font-medium">Personnel</div>
+            <div className="text-[11px] text-slate-500">Teaching & Non-Teaching Staff</div>
           </div>
           <div className="space-y-1">
             <div className="text-2xl sm:text-3xl font-bold font-mono-num text-emerald-400">100%</div>
