@@ -155,3 +155,34 @@ export interface SchoolActivity {
   description: string;
   status: 'Upcoming' | 'Ongoing' | 'Completed';
 }
+
+export type AccountRole = 'admin' | 'teacher' | 'student';
+
+export interface UserAccount {
+  id: string;
+  username: string; // e.g., 'Admin'
+  password: string; // e.g., 'Inhs67890'
+  role: AccountRole;
+  fullName: string;
+  designation: string; // e.g., 'System Administrator', 'Head Teacher'
+  email?: string;
+  phone?: string;
+  teacherId?: string; // links to Teacher profile if role === 'teacher'
+  createdAt: string;
+  isPrimaryAdmin?: boolean; // prevents deleting main Admin
+}
+
+export interface SchoolClassSection {
+  id: string;
+  gradeLevel: GradeLevel;
+  sectionName: string;
+  track: TrackType;
+  strand: StrandType;
+  roomNumber: string;
+  adviserId: string;
+  adviserName: string;
+  schoolYear: string;
+  studentIds: string[];
+  maxCapacity: number;
+}
+

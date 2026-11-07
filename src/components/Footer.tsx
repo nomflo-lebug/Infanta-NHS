@@ -1,5 +1,6 @@
 import React from 'react';
 import { ShieldCheck, MapPin, Phone, Mail, Award, ArrowUp } from 'lucide-react';
+import { VisitorCounter } from './VisitorCounter';
 
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
@@ -180,8 +181,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPortal }) => {
 
         </div>
 
+        {/* Official Web Traffic & Visitor Analytics Counter */}
+        <div className="mt-12">
+          <VisitorCounter />
+        </div>
+
         {/* Bottom Strip */}
-        <div className="mt-12 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
+        <div className="mt-10 pt-6 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500 text-[11px]">
           <div>
             &copy; 1947–2026 Infanta National High School · All Rights Reserved. Department of Education Region IV-A.
           </div>

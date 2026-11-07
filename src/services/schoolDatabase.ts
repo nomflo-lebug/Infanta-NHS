@@ -12,10 +12,12 @@ import {
   SchoolActivity,
   SubjectGrade,
   AttendanceMonth,
-  CoreValueRating
+  CoreValueRating,
+  UserAccount,
+  SchoolClassSection
 } from '../types/school';
 
-const DB_KEY = 'inhs_school_database_v1';
+const DB_KEY = 'inhs_school_database_v2';
 
 interface DatabaseSchema {
   students: StudentProfile[];
@@ -23,6 +25,8 @@ interface DatabaseSchema {
   enrollmentApplications: EnrollmentApplication[];
   updates: SchoolUpdate[];
   activities: SchoolActivity[];
+  accounts: UserAccount[];
+  sections: SchoolClassSection[];
 }
 
 const DEFAULT_ATTENDANCE: AttendanceMonth[] = [
@@ -525,6 +529,176 @@ const INITIAL_ACTIVITIES: SchoolActivity[] = [
   }
 ];
 
+const INITIAL_ACCOUNTS: UserAccount[] = [
+  {
+    id: 'acc-admin',
+    username: 'Admin',
+    password: 'Inhs67890',
+    role: 'admin',
+    fullName: 'System Administrator',
+    designation: 'School Head / ICT Governance',
+    email: 'admin@inhs.deped.gov.ph',
+    phone: '(042) 535-2144',
+    createdAt: '2026-06-01',
+    isPrimaryAdmin: true,
+  },
+  {
+    id: 'acc-t1',
+    username: 'josefina.alcala',
+    password: 'password123',
+    role: 'teacher',
+    fullName: 'Mrs. Josefina M. Alcala',
+    designation: 'Master Teacher II - Science & Math',
+    email: 'josefina.alcala@deped.gov.ph',
+    phone: '0917-889-1240',
+    teacherId: 't-101',
+    createdAt: '2026-06-01',
+  },
+  {
+    id: 'acc-t2',
+    username: 'emmanuel.delarosa',
+    password: 'password123',
+    role: 'teacher',
+    fullName: 'Mr. Emmanuel P. Dela Rosa',
+    designation: 'Teacher III - Senior High STEM',
+    email: 'emmanuel.delarosa@deped.gov.ph',
+    phone: '0920-554-9981',
+    teacherId: 't-102',
+    createdAt: '2026-06-01',
+  },
+  {
+    id: 'acc-t3',
+    username: 'carmela.hernandez',
+    password: 'password123',
+    role: 'teacher',
+    fullName: 'Ms. Carmela V. Hernandez',
+    designation: 'Teacher II - Languages & Humanities',
+    email: 'carmela.hernandez@deped.gov.ph',
+    phone: '0918-344-7721',
+    teacherId: 't-103',
+    createdAt: '2026-06-01',
+  },
+  {
+    id: 'acc-t4',
+    username: 'danilo.morfe',
+    password: 'password123',
+    role: 'teacher',
+    fullName: 'Engr. Danilo S. Morfe',
+    designation: 'Master Teacher I - TVL & TLE',
+    email: 'danilo.morfe@deped.gov.ph',
+    phone: '0922-910-3345',
+    teacherId: 't-104',
+    createdAt: '2026-06-01',
+  },
+];
+
+const INITIAL_SECTIONS: SchoolClassSection[] = [
+  {
+    id: 'sec-g10-ste',
+    gradeLevel: 10,
+    sectionName: 'STE - Rutherford',
+    track: 'Junior High School',
+    strand: 'Special Science Program (STE)',
+    roomNumber: 'Science Bldg, Rm 201',
+    adviserId: 't-101',
+    adviserName: 'Mrs. Josefina M. Alcala',
+    schoolYear: '2026–2027',
+    studentIds: ['stud-001'],
+    maxCapacity: 45,
+  },
+  {
+    id: 'sec-g12-stem',
+    gradeLevel: 12,
+    sectionName: 'STEM - Einstein',
+    track: 'Academic Track',
+    strand: 'STEM',
+    roomNumber: 'SHS Bldg, Rm 302',
+    adviserId: 't-102',
+    adviserName: 'Mr. Emmanuel P. Dela Rosa',
+    schoolYear: '2026–2027',
+    studentIds: ['stud-002'],
+    maxCapacity: 45,
+  },
+  {
+    id: 'sec-g11-humss',
+    gradeLevel: 11,
+    sectionName: 'HUMSS - Mabini',
+    track: 'Academic Track',
+    strand: 'HUMSS',
+    roomNumber: 'SHS Bldg, Rm 204',
+    adviserId: 't-103',
+    adviserName: 'Ms. Carmela V. Hernandez',
+    schoolYear: '2026–2027',
+    studentIds: ['stud-003'],
+    maxCapacity: 45,
+  },
+  {
+    id: 'sec-g12-tvl-turing',
+    gradeLevel: 12,
+    sectionName: 'TVL - Turing',
+    track: 'TVL Track',
+    strand: 'TVL - ICT (Computer Systems)',
+    roomNumber: 'IT Computer Lab 2',
+    adviserId: 't-104',
+    adviserName: 'Engr. Danilo S. Morfe',
+    schoolYear: '2026–2027',
+    studentIds: ['stud-004'],
+    maxCapacity: 40,
+  },
+  {
+    id: 'sec-g8-bonifacio',
+    gradeLevel: 8,
+    sectionName: 'Grade 8 - Bonifacio',
+    track: 'Junior High School',
+    strand: 'Regular JHS',
+    roomNumber: 'Main Bldg, Rm 104',
+    adviserId: 't-101',
+    adviserName: 'Mrs. Josefina M. Alcala',
+    schoolYear: '2026–2027',
+    studentIds: ['stud-005'],
+    maxCapacity: 50,
+  },
+  {
+    id: 'sec-g7-diamond',
+    gradeLevel: 7,
+    sectionName: 'Grade 7 - Diamond',
+    track: 'Junior High School',
+    strand: 'Regular JHS',
+    roomNumber: 'Main Bldg, Rm 101',
+    adviserId: 't-103',
+    adviserName: 'Ms. Carmela V. Hernandez',
+    schoolYear: '2026–2027',
+    studentIds: [],
+    maxCapacity: 50,
+  },
+  {
+    id: 'sec-g11-eim-tesla',
+    gradeLevel: 11,
+    sectionName: 'TVL - Tesla (EIM)',
+    track: 'TVL Track',
+    strand: 'TVL - Electrical Installation and Maintenance (EIM)',
+    roomNumber: 'Tech-Voc Workshop 1',
+    adviserId: 't-104',
+    adviserName: 'Engr. Danilo S. Morfe',
+    schoolYear: '2026–2027',
+    studentIds: [],
+    maxCapacity: 40,
+  },
+  {
+    id: 'sec-g11-epas-volt',
+    gradeLevel: 11,
+    sectionName: 'TVL - Volt (EPAS)',
+    track: 'TVL Track',
+    strand: 'TVL - Electronic Products Assembly and Servicing (EPAS)',
+    roomNumber: 'Electronics Lab Rm 102',
+    adviserId: 't-104',
+    adviserName: 'Engr. Danilo S. Morfe',
+    schoolYear: '2026–2027',
+    studentIds: [],
+    maxCapacity: 40,
+  },
+];
+
 class SchoolDatabaseService {
   private data: DatabaseSchema;
   private listeners: (() => void)[] = [];
@@ -535,9 +709,30 @@ class SchoolDatabaseService {
 
   private loadFromStorage(): DatabaseSchema {
     try {
-      const stored = localStorage.getItem(DB_KEY);
+      const stored = localStorage.getItem(DB_KEY) || localStorage.getItem('inhs_school_database_v1');
       if (stored) {
-        return JSON.parse(stored);
+        const parsed: DatabaseSchema = JSON.parse(stored);
+        
+        // Ensure accounts exist and Admin has Username: Admin and Password: Inhs67890
+        if (!parsed.accounts || !Array.isArray(parsed.accounts) || parsed.accounts.length === 0) {
+          parsed.accounts = INITIAL_ACCOUNTS;
+        } else {
+          const adminIdx = parsed.accounts.findIndex(a => a.username.toLowerCase() === 'admin');
+          if (adminIdx === -1) {
+            parsed.accounts.unshift(INITIAL_ACCOUNTS[0]);
+          } else {
+            parsed.accounts[adminIdx].password = 'Inhs67890';
+            parsed.accounts[adminIdx].role = 'admin';
+            parsed.accounts[adminIdx].isPrimaryAdmin = true;
+          }
+        }
+
+        // Ensure sections exist
+        if (!parsed.sections || !Array.isArray(parsed.sections) || parsed.sections.length === 0) {
+          parsed.sections = INITIAL_SECTIONS;
+        }
+
+        return parsed;
       }
     } catch (e) {
       console.warn('Failed to parse stored INHS database, falling back to defaults', e);
@@ -549,6 +744,8 @@ class SchoolDatabaseService {
       enrollmentApplications: INITIAL_APPLICATIONS,
       updates: INITIAL_UPDATES,
       activities: INITIAL_ACTIVITIES,
+      accounts: INITIAL_ACCOUNTS,
+      sections: INITIAL_SECTIONS,
     };
     this.persist(initial);
     return initial;
@@ -771,6 +968,203 @@ class SchoolDatabaseService {
     return newAct;
   }
 
+  // --- User Accounts & Authentication ---
+  public getAccounts(): UserAccount[] {
+    return [...this.data.accounts];
+  }
+
+  public authenticate(username: string, password: string): UserAccount | null {
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = password.trim();
+    const account = this.data.accounts.find(
+      a => a.username.trim().toLowerCase() === cleanUser && a.password.trim() === cleanPass
+    );
+    return account ? { ...account } : null;
+  }
+
+  public createAccount(account: Omit<UserAccount, 'id' | 'createdAt'>): { success: boolean; account?: UserAccount; error?: string } {
+    const cleanUser = account.username.trim();
+    if (!cleanUser) {
+      return { success: false, error: 'Username cannot be empty.' };
+    }
+    if (!account.password || account.password.length < 4) {
+      return { success: false, error: 'Password must be at least 4 characters long.' };
+    }
+    const exists = this.data.accounts.some(a => a.username.toLowerCase() === cleanUser.toLowerCase());
+    if (exists) {
+      return { success: false, error: `Account with username "${cleanUser}" already exists.` };
+    }
+
+    const newAccount: UserAccount = {
+      ...account,
+      id: `acc-${Date.now().toString().slice(-6)}`,
+      username: cleanUser,
+      createdAt: new Date().toISOString().split('T')[0],
+      isPrimaryAdmin: false,
+    };
+
+    this.data.accounts.unshift(newAccount);
+    this.persist(this.data);
+    return { success: true, account: newAccount };
+  }
+
+  public updateAccount(id: string, updates: Partial<UserAccount>): boolean {
+    const acc = this.data.accounts.find(a => a.id === id);
+    if (!acc) return false;
+    Object.assign(acc, updates);
+    this.persist(this.data);
+    return true;
+  }
+
+  public deleteAccount(id: string): { success: boolean; error?: string } {
+    const acc = this.data.accounts.find(a => a.id === id);
+    if (!acc) return { success: false, error: 'Account not found.' };
+    if (acc.isPrimaryAdmin || acc.username.toLowerCase() === 'admin') {
+      return { success: false, error: 'The primary Admin account cannot be deleted.' };
+    }
+    this.data.accounts = this.data.accounts.filter(a => a.id !== id);
+    this.persist(this.data);
+    return { success: true };
+  }
+
+  public verifyAdminPassword(password: string): boolean {
+    const adminAcc = this.data.accounts.find(a => a.username.toLowerCase() === 'admin');
+    const expectedPassword = adminAcc?.password || 'Inhs67890';
+    return password.trim() === expectedPassword.trim();
+  }
+
+  // --- Classes & Sections ---
+  public getSections(): SchoolClassSection[] {
+    return [...this.data.sections];
+  }
+
+  public getSectionById(id: string): SchoolClassSection | undefined {
+    return this.data.sections.find(s => s.id === id);
+  }
+
+  public addSection(section: Omit<SchoolClassSection, 'id' | 'studentIds'>): SchoolClassSection {
+    const newSection: SchoolClassSection = {
+      ...section,
+      id: `sec-${Date.now().toString().slice(-6)}`,
+      studentIds: [],
+    };
+    this.data.sections.push(newSection);
+    this.persist(this.data);
+    return newSection;
+  }
+
+  public updateSection(id: string, updates: Partial<SchoolClassSection>): boolean {
+    const sec = this.data.sections.find(s => s.id === id);
+    if (!sec) return false;
+    Object.assign(sec, updates);
+    this.persist(this.data);
+    return true;
+  }
+
+  public deleteSection(id: string): boolean {
+    const prev = this.data.sections.length;
+    this.data.sections = this.data.sections.filter(s => s.id !== id);
+    if (this.data.sections.length !== prev) {
+      this.persist(this.data);
+      return true;
+    }
+    return false;
+  }
+
+  public addStudentToSection(sectionId: string, studentId: string): boolean {
+    const sec = this.data.sections.find(s => s.id === sectionId);
+    const stud = this.data.students.find(s => s.id === studentId);
+    if (!sec || !stud) return false;
+
+    // Remove from other sections first if already assigned
+    this.data.sections.forEach(s => {
+      s.studentIds = s.studentIds.filter(id => id !== studentId);
+    });
+
+    if (!sec.studentIds.includes(studentId)) {
+      sec.studentIds.push(studentId);
+    }
+
+    // Sync student's section, gradeLevel, track, strand, adviser
+    stud.section = sec.sectionName;
+    stud.gradeLevel = sec.gradeLevel;
+    stud.track = sec.track;
+    stud.strand = sec.strand;
+    stud.adviserId = sec.adviserId;
+    stud.adviserName = sec.adviserName;
+
+    this.persist(this.data);
+    return true;
+  }
+
+  public removeStudentFromSection(sectionId: string, studentId: string): boolean {
+    const sec = this.data.sections.find(s => s.id === sectionId);
+    if (!sec) return false;
+    sec.studentIds = sec.studentIds.filter(id => id !== studentId);
+    const stud = this.data.students.find(s => s.id === studentId);
+    if (stud && stud.section === sec.sectionName) {
+      stud.section = 'Unassigned';
+    }
+    this.persist(this.data);
+    return true;
+  }
+
+  public createAndAssignStudent(
+    sectionId: string, 
+    data: {
+      firstName: string;
+      lastName: string;
+      middleName?: string;
+      gender: 'Male' | 'Female';
+      lrn?: string;
+      guardianName?: string;
+      contactNumber?: string;
+    }
+  ): StudentProfile | null {
+    const sec = this.data.sections.find(s => s.id === sectionId);
+    if (!sec) return null;
+
+    const newLrn = data.lrn?.trim() || `10982345${Math.floor(1000 + Math.random() * 9000)}`;
+    const newStudent: StudentProfile = {
+      id: `stud-${Date.now().toString().slice(-5)}`,
+      lrn: newLrn,
+      firstName: data.firstName.trim(),
+      middleName: data.middleName?.trim() || '',
+      lastName: data.lastName.trim(),
+      gender: data.gender,
+      birthDate: '2010-01-01',
+      age: 12 + (sec.gradeLevel - 7),
+      barangay: 'Barangay Poblacion 38',
+      municipality: 'Infanta',
+      province: 'Quezon',
+      contactNumber: data.contactNumber || '0917-000-0000',
+      guardianName: data.guardianName || 'Guardian',
+      guardianRelationship: 'Parent/Guardian',
+      guardianContact: data.contactNumber || '0917-000-0000',
+      gradeLevel: sec.gradeLevel,
+      section: sec.sectionName,
+      track: sec.track,
+      strand: sec.strand,
+      adviserId: sec.adviserId,
+      adviserName: sec.adviserName,
+      schoolYear: sec.schoolYear,
+      enrollmentStatus: 'Enrolled',
+      grades: [],
+      generalAverage: null,
+      honors: null,
+      attendance: DEFAULT_ATTENDANCE,
+      coreValues: DEFAULT_CORE_VALUES,
+      adviserRemarks: `Enrolled in ${sec.sectionName}.`,
+    };
+
+    this.data.students.push(newStudent);
+    if (!sec.studentIds.includes(newStudent.id)) {
+      sec.studentIds.push(newStudent.id);
+    }
+    this.persist(this.data);
+    return newStudent;
+  }
+
   // --- Maintenance & Backup ---
   public resetToDefault(): void {
     this.data = {
@@ -779,6 +1173,8 @@ class SchoolDatabaseService {
       enrollmentApplications: INITIAL_APPLICATIONS,
       updates: INITIAL_UPDATES,
       activities: INITIAL_ACTIVITIES,
+      accounts: INITIAL_ACCOUNTS,
+      sections: INITIAL_SECTIONS,
     };
     this.persist(this.data);
   }

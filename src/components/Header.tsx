@@ -51,9 +51,22 @@ export const Header: React.FC<HeaderProps> = ({
             <span className="text-slate-600 hidden lg:inline">·</span>
             <span className="hidden lg:inline">Division of Quezon</span>
           </div>
-          <div className="flex items-center gap-4 text-[11px] font-mono-num text-slate-400">
-            <span>School ID: <strong className="text-amber-300 font-semibold">301332</strong></span>
+          <div className="flex items-center gap-3 text-[11px] font-mono-num text-slate-400">
+            <button
+              onClick={() => {
+                const el = document.getElementById('visitor-counter');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }}
+              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-800/90 text-amber-300 hover:text-amber-200 border border-slate-700/80 hover:border-amber-400/50 transition-colors cursor-pointer"
+              title="View Official Portal Visitor Counter & Web Analytics"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] uppercase font-bold text-slate-400">Visits:</span>
+              <span className="font-semibold text-amber-300 font-mono">128K+</span>
+            </button>
             <span className="text-slate-700">|</span>
+            <span>School ID: <strong className="text-amber-300 font-semibold">301332</strong></span>
+            <span className="text-slate-700 hidden sm:inline">|</span>
             <span className="hidden sm:inline">Infanta, Quezon 4336</span>
           </div>
         </div>

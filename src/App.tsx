@@ -93,7 +93,7 @@ export default function App() {
       />
 
       {/* Persistent Floating Portal Launcher */}
-      <aside aria-label="Portal Quick Launcher" className="fixed bottom-6 right-6 z-30 no-print">
+      <aside aria-label="Portal Quick Launcher" className="fixed bottom-20 sm:bottom-24 right-6 sm:right-8 z-30 no-print">
         <button
           onClick={() => handleOpenPortal('student_parent')}
           className="flex items-center gap-2.5 px-4 py-3 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white rounded-full shadow-xl hover:shadow-2xl border border-amber-400/30 transition-all duration-200 cursor-pointer group"
