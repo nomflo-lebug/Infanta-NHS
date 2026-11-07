@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Plus, 
@@ -92,6 +92,11 @@ export const AdminSectionsManager: React.FC = () => {
     setStudents(schoolDb.getStudents());
     setTeachers(schoolDb.getTeachers());
   };
+
+  useEffect(() => {
+    const unsub = schoolDb.subscribe(refreshData);
+    return () => unsub();
+  }, []);
 
   // Adjust Track & Strand defaults when Grade Level changes
   const handleGradeLevelChange = (g: GradeLevel) => {
@@ -1224,7 +1229,7 @@ export const AdminSectionsManager: React.FC = () => {
                     <Lock className="w-3.5 h-3.5 text-blue-900" />
                     <span>Admin Password Confirmation Required *</span>
                   </label>
-                  <span className="text-[10px] text-slate-500 font-mono">Default: Inhs67890</span>
+                  <span className="text-[10px] text-slate-500">Security Verification</span>
                 </div>
                 <input
                   type="password"
@@ -1298,7 +1303,7 @@ export const AdminSectionsManager: React.FC = () => {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="block font-bold text-slate-900">Enter Admin Password to Authorize *</label>
-                  <span className="text-[10px] text-slate-500 font-mono">Default: Inhs67890</span>
+                  <span className="text-[10px] text-rose-600 font-semibold">Irreversible Action</span>
                 </div>
                 <input
                   type="password"

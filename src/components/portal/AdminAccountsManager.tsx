@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   UserPlus, 
@@ -14,7 +14,8 @@ import {
   Copy, 
   Check, 
   Sparkles,
-  Lock
+  Lock,
+  GraduationCap
 } from 'lucide-react';
 import { schoolDb } from '../../services/schoolDatabase';
 import { UserAccount, AccountRole } from '../../types/school';
@@ -34,7 +35,8 @@ export const AdminAccountsManager: React.FC<AdminAccountsManagerProps> = ({ curr
   const [newPassword, setNewPassword] = useState('Inhs2026!');
   const [newRole, setNewRole] = useState<AccountRole>('teacher');
   const [newFullName, setNewFullName] = useState('');
-  const [newDesignation, setNewDesignation] = useState('');
+  const [newDesignation, setNewDesignation] = useState('Teacher I');
+  const [newDepartment, setNewDepartment] = useState('Science & Mathematics');
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   
@@ -53,6 +55,11 @@ export const AdminAccountsManager: React.FC<AdminAccountsManagerProps> = ({ curr
   const refreshAccounts = () => {
     setAccounts(schoolDb.getAccounts());
   };
+
+  useEffect(() => {
+    const unsub = schoolDb.subscribe(refreshAccounts);
+    return () => unsub();
+  }, []);
 
   const togglePasswordVisibility = (id: string) => {
     setVisiblePasswords(prev => ({
@@ -77,12 +84,16 @@ export const AdminAccountsManager: React.FC<AdminAccountsManagerProps> = ({ curr
       return;
     }
 
+    const finalDesignation = newRole === 'admin'
+      ? (newDesignation.trim() || 'Administrative Officer')
+      : `${newDesignation.trim() || 'Teacher I'} (${newDepartment})`;
+
     const res = schoolDb.createAccount({
       username: newUsername.trim(),
       password: newPassword.trim(),
       role: newRole,
       fullName: newFullName.trim(),
-      designation: newDesignation.trim() || (newRole === 'admin' ? 'Administrative Officer' : 'Faculty Member'),
+      designation: finalDesignation,
       email: newEmail.trim() || undefined,
       phone: newPhone.trim() || undefined,
     });
@@ -92,14 +103,19 @@ export const AdminAccountsManager: React.FC<AdminAccountsManagerProps> = ({ curr
       return;
     }
 
-    setSuccessMessage(`Account for "${newFullName.trim()}" (Username: ${newUsername.trim()}) created successfully!`);
-    setTimeout(() => setSuccessMessage(null), 4000);
+    const successMsg = newRole === 'teacher'
+      ? `Success! Account created for "${newFullName.trim()}". The teacher/adviser has been officially added to the database and can now be assigned to advisory classes and gradebooks!`
+      : `Administrator account for "${newFullName.trim()}" (Username: @${newUsername.trim()}) created successfully!`;
+
+    setSuccessMessage(successMsg);
+    setTimeout(() => setSuccessMessage(null), 5000);
 
     // Reset form
     setNewUsername('');
     setNewPassword('Inhs2026!');
     setNewFullName('');
-    setNewDesignation('');
+    setNewDesignation('Teacher I');
+    setNewDepartment('Science & Mathematics');
     setNewEmail('');
     setNewPhone('');
     setShowCreateModal(false);
@@ -458,16 +474,75 @@ export const AdminAccountsManager: React.FC<AdminAccountsManagerProps> = ({ curr
                 />
               </div>
 
-              <div>
-                <label className="block font-semibold text-slate-700 mb-1">Designation / Title</label>
-                <input
-                  type="text"
-                  value={newDesignation}
-                  onChange={(e) => setNewDesignation(e.target.value)}
-                  placeholder={newRole === 'admin' ? "e.g. Assistant Principal / Records Officer" : "e.g. Teacher II - Science"}
-                  className="w-full p-2.5 rounded-lg border border-slate-300 focus:border-blue-900 focus:outline-hidden"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block font-semibold text-slate-700 mb-1">
+                    {newRole === 'admin' ? 'Position / Designation' : 'Teacher Rank / Title'}
+                  </label>
+                  {newRole === 'admin' ? (
+                    <input
+                      type="text"
+                      value={newDesignation}
+                      onChange={(e) => setNewDesignation(e.target.value)}
+                      placeholder="e.g. Assistant Principal / Records Officer"
+                      className="w-full p-2.5 rounded-lg border border-slate-300 focus:border-blue-900 focus:outline-hidden"
+                    />
+                  ) : (
+                    <select
+                      value={newDesignation}
+                      onChange={(e) => setNewDesignation(e.target.value)}
+                      className="w-full p-2.5 rounded-lg border border-slate-300 bg-white font-medium"
+                    >
+                      <option value="Teacher I">Teacher I</option>
+                      <option value="Teacher II">Teacher II</option>
+                      <option value="Teacher III">Teacher III</option>
+                      <option value="Master Teacher I">Master Teacher I</option>
+                      <option value="Master Teacher II">Master Teacher II</option>
+                      <option value="Head Teacher">Head Teacher</option>
+                      <option value="Special Science Teacher">Special Science Teacher</option>
+                    </select>
+                  )}
+                </div>
+
+                {newRole === 'teacher' ? (
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Academic Department *</label>
+                    <select
+                      value={newDepartment}
+                      onChange={(e) => setNewDepartment(e.target.value)}
+                      className="w-full p-2.5 rounded-lg border border-slate-300 bg-white font-medium"
+                    >
+                      <option value="Science & Mathematics">Science & Mathematics</option>
+                      <option value="Languages & Humanities">Languages & Humanities</option>
+                      <option value="Senior High School - STEM">Senior High School - STEM</option>
+                      <option value="Senior High School - ABM">Senior High School - ABM</option>
+                      <option value="Senior High School - HUMSS">Senior High School - HUMSS</option>
+                      <option value="Technical-Vocational & Livelihood">TVL / TLE (ICT, HE, EIM, EPAS)</option>
+                      <option value="Araling Panlipunan & Social Sciences">Araling Panlipunan & Social Sciences</option>
+                      <option value="MAPEH & Values Education">MAPEH & Values Education</option>
+                      <option value="Junior High School Faculty">Junior High School General</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block font-semibold text-slate-700 mb-1">Department / Office</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Office of the Principal"
+                      className="w-full p-2.5 rounded-lg border border-slate-300 focus:border-blue-900 focus:outline-hidden"
+                    />
+                  </div>
+                )}
               </div>
+
+              {newRole === 'teacher' && (
+                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-blue-950 text-[11px] flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-blue-800 shrink-0" />
+                  <span>
+                    <strong>Database Auto-Sync:</strong> Creating this account will automatically add this faculty member to the active <strong>Teachers & Advisers</strong> database for section assignment and gradebook encoding.
+                  </span>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-3">
                 <div>

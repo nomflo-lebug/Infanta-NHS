@@ -732,6 +732,34 @@ class SchoolDatabaseService {
           parsed.sections = INITIAL_SECTIONS;
         }
 
+        // Ensure teachers exist and sync with any teacher accounts
+        if (!parsed.teachers || !Array.isArray(parsed.teachers) || parsed.teachers.length === 0) {
+          parsed.teachers = INITIAL_TEACHERS;
+        } else {
+          // Cross-verify all teacher accounts exist in teachers list
+          parsed.accounts?.forEach(acc => {
+            if (acc.role === 'teacher') {
+              const exists = parsed.teachers.some(
+                t => (acc.teacherId && t.id === acc.teacherId) || t.name.trim().toLowerCase() === acc.fullName.trim().toLowerCase()
+              );
+              if (!exists) {
+                const tId = acc.teacherId || `t-${Math.random().toString(36).substr(2, 6)}`;
+                acc.teacherId = tId;
+                parsed.teachers.push({
+                  id: tId,
+                  employeeNumber: `T-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+                  name: acc.fullName,
+                  title: acc.designation || 'Teacher I',
+                  department: 'Junior High School Faculty',
+                  email: acc.email || `${acc.username.toLowerCase()}@deped.gov.ph`,
+                  phone: acc.phone || '0917-000-0000',
+                  teachingLoads: [],
+                });
+              }
+            }
+          });
+        }
+
         return parsed;
       }
     } catch (e) {
@@ -860,6 +888,34 @@ class SchoolDatabaseService {
 
   public getTeacherById(id: string): Teacher | undefined {
     return this.data.teachers.find(t => t.id === id);
+  }
+
+  public addTeacher(teacher: Omit<Teacher, 'id'>): Teacher {
+    const newTeacher: Teacher = {
+      ...teacher,
+      id: `t-${Date.now().toString().slice(-6)}`,
+    };
+    this.data.teachers.push(newTeacher);
+    this.persist(this.data);
+    return newTeacher;
+  }
+
+  public updateTeacher(id: string, updates: Partial<Teacher>): boolean {
+    const teacher = this.data.teachers.find(t => t.id === id);
+    if (!teacher) return false;
+    Object.assign(teacher, updates);
+    this.persist(this.data);
+    return true;
+  }
+
+  public deleteTeacher(id: string): boolean {
+    const prevLen = this.data.teachers.length;
+    this.data.teachers = this.data.teachers.filter(t => t.id !== id);
+    if (this.data.teachers.length !== prevLen) {
+      this.persist(this.data);
+      return true;
+    }
+    return false;
   }
 
   // --- Enrollment Applications ---
@@ -1003,6 +1059,44 @@ class SchoolDatabaseService {
       isPrimaryAdmin: false,
     };
 
+    // If role is teacher, automatically register & sync teacher profile so they appear in advisers/faculty list
+    if (newAccount.role === 'teacher') {
+      const teacherId = newAccount.teacherId || `t-${Date.now().toString().slice(-6)}`;
+      newAccount.teacherId = teacherId;
+
+      const existingTeacherIndex = this.data.teachers.findIndex(
+        t => t.id === teacherId || t.name.trim().toLowerCase() === newAccount.fullName.trim().toLowerCase()
+      );
+
+      if (existingTeacherIndex === -1) {
+        const des = (newAccount.designation || '').toLowerCase();
+        let dept = 'Junior High School Faculty';
+        if (des.includes('science') || des.includes('math')) dept = 'Science & Mathematics';
+        else if (des.includes('stem')) dept = 'Senior High School - STEM';
+        else if (des.includes('abm')) dept = 'Senior High School - ABM';
+        else if (des.includes('humss')) dept = 'Senior High School - HUMSS';
+        else if (des.includes('english') || des.includes('filipino') || des.includes('language') || des.includes('humanities')) dept = 'Languages & Humanities';
+        else if (des.includes('tvl') || des.includes('tle') || des.includes('ict') || des.includes('tech')) dept = 'Technical-Vocational & Livelihood';
+        else if (des.includes('ap') || des.includes('social') || des.includes('history')) dept = 'Araling Panlipunan & Social Sciences';
+        else if (des.includes('mapeh') || des.includes('values') || des.includes('esp')) dept = 'MAPEH & Values Education';
+
+        const newTeacher: Teacher = {
+          id: teacherId,
+          employeeNumber: `T-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+          name: newAccount.fullName,
+          title: newAccount.designation || 'Teacher I',
+          department: dept,
+          email: newAccount.email || `${cleanUser.toLowerCase()}@deped.gov.ph`,
+          phone: newAccount.phone || '0917-000-0000',
+          teachingLoads: [],
+        };
+
+        this.data.teachers.push(newTeacher);
+      } else {
+        newAccount.teacherId = this.data.teachers[existingTeacherIndex].id;
+      }
+    }
+
     this.data.accounts.unshift(newAccount);
     this.persist(this.data);
     return { success: true, account: newAccount };
@@ -1012,6 +1106,18 @@ class SchoolDatabaseService {
     const acc = this.data.accounts.find(a => a.id === id);
     if (!acc) return false;
     Object.assign(acc, updates);
+
+    // If teacher account, keep the associated teacher profile in sync
+    if (acc.role === 'teacher' && acc.teacherId) {
+      const teacher = this.data.teachers.find(t => t.id === acc.teacherId);
+      if (teacher) {
+        if (updates.fullName) teacher.name = updates.fullName;
+        if (updates.designation) teacher.title = updates.designation;
+        if (updates.email) teacher.email = updates.email;
+        if (updates.phone) teacher.phone = updates.phone;
+      }
+    }
+
     this.persist(this.data);
     return true;
   }
@@ -1022,6 +1128,12 @@ class SchoolDatabaseService {
     if (acc.isPrimaryAdmin || acc.username.toLowerCase() === 'admin') {
       return { success: false, error: 'The primary Admin account cannot be deleted.' };
     }
+
+    // If teacher account, remove associated teacher profile as well
+    if (acc.role === 'teacher' && acc.teacherId) {
+      this.data.teachers = this.data.teachers.filter(t => t.id !== acc.teacherId);
+    }
+
     this.data.accounts = this.data.accounts.filter(a => a.id !== id);
     this.persist(this.data);
     return { success: true };

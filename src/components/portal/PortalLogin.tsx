@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, BookOpen, Lock, User, Eye, EyeOff, AlertCircle, Sparkles, KeyRound } from 'lucide-react';
+import { ShieldCheck, BookOpen, Lock, User, Eye, EyeOff, AlertCircle, KeyRound } from 'lucide-react';
 import { schoolDb } from '../../services/schoolDatabase';
 import { UserAccount, Role } from '../../types/school';
 
@@ -14,7 +14,7 @@ export const PortalLogin: React.FC<PortalLoginProps> = ({
   onSuccess,
   onSwitchRole,
 }) => {
-  const [username, setUsername] = useState(targetRole === 'admin' ? 'Admin' : '');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -45,18 +45,6 @@ export const PortalLogin: React.FC<PortalLoginProps> = ({
       setLoading(false);
       onSuccess(user);
     }, 250);
-  };
-
-  const handleQuickFillAdmin = () => {
-    setUsername('Admin');
-    setPassword('Inhs67890');
-    setErrorMessage(null);
-  };
-
-  const handleQuickFillTeacher = (user: string, pass: string) => {
-    setUsername(user);
-    setPassword(pass);
-    setErrorMessage(null);
   };
 
   const isAdmin = targetRole === 'admin';
@@ -114,7 +102,7 @@ export const PortalLogin: React.FC<PortalLoginProps> = ({
               autoFocus
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder={isAdmin ? "Username (e.g. Admin)" : "e.g. josefina.alcala"}
+              placeholder={isAdmin ? "Enter administrator username" : "Enter faculty username"}
               className="w-full pl-9 pr-3 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 focus:border-blue-900 focus:ring-1 focus:ring-blue-900 focus:outline-hidden font-medium"
             />
           </div>
@@ -160,76 +148,15 @@ export const PortalLogin: React.FC<PortalLoginProps> = ({
         </button>
       </form>
 
-      {/* Demo Credentials Helper Box */}
-      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-slate-700 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-            <span>Default Portal Credentials</span>
-          </span>
-          <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-mono">
-            S.Y. 2026–2027
-          </span>
+      {/* DepEd Security & Privacy Notice */}
+      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
+        <ShieldCheck className="w-4 h-4 text-blue-900 shrink-0 mt-0.5" />
+        <div className="text-[11px] leading-relaxed">
+          <div className="font-semibold text-slate-800">DepEd INHS Information System</div>
+          <p className="text-slate-500 mt-0.5">
+            Access to this portal is restricted to authorized personnel. In compliance with the Data Privacy Act of 2012 (RA 10173), all system sessions and grade encoding activities are protected.
+          </p>
         </div>
-
-        {isAdmin ? (
-          <div className="space-y-1.5 text-[11px] text-slate-600">
-            <div className="p-2 rounded bg-white border border-slate-200 font-mono flex items-center justify-between">
-              <div>
-                Username: <strong className="text-blue-900">Admin</strong> · Password: <strong className="text-blue-900">Inhs67890</strong>
-              </div>
-              <button
-                type="button"
-                onClick={handleQuickFillAdmin}
-                className="text-[10px] bg-blue-100 hover:bg-blue-200 text-blue-900 font-bold px-2 py-0.5 rounded cursor-pointer transition-colors"
-              >
-                Autofill
-              </button>
-            </div>
-            <p className="text-[10px] text-slate-500">
-              * Full control to create other teacher/admin accounts, build classes, and assign students.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-1.5 text-[11px] text-slate-600">
-            <div className="p-1.5 rounded bg-white border border-slate-200 font-mono flex items-center justify-between">
-              <div>
-                <strong>josefina.alcala</strong> (Pass: password123)
-              </div>
-              <button
-                type="button"
-                onClick={() => handleQuickFillTeacher('josefina.alcala', 'password123')}
-                className="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded cursor-pointer"
-              >
-                Autofill
-              </button>
-            </div>
-            <div className="p-1.5 rounded bg-white border border-slate-200 font-mono flex items-center justify-between">
-              <div>
-                <strong>emmanuel.delarosa</strong> (Pass: password123)
-              </div>
-              <button
-                type="button"
-                onClick={() => handleQuickFillTeacher('emmanuel.delarosa', 'password123')}
-                className="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded cursor-pointer"
-              >
-                Autofill
-              </button>
-            </div>
-            <div className="p-1.5 rounded bg-white border border-slate-200 font-mono flex items-center justify-between">
-              <div>
-                <strong>danilo.morfe</strong> (Pass: password123)
-              </div>
-              <button
-                type="button"
-                onClick={() => handleQuickFillTeacher('danilo.morfe', 'password123')}
-                className="text-[10px] bg-emerald-100 hover:bg-emerald-200 text-emerald-900 font-bold px-2 py-0.5 rounded cursor-pointer"
-              >
-                Autofill
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Switch Link */}
