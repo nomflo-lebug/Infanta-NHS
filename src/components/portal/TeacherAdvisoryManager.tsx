@@ -16,9 +16,12 @@ import {
   Sparkles,
   X,
   Save,
-  ChevronDown
+  ChevronDown,
+  Cloud,
+  Upload
 } from 'lucide-react';
 import { schoolDb } from '../../services/schoolDatabase';
+import { backupSectionSF1ToDrive, signInWithGoogle, getAccessToken } from '../../services/googleDriveService';
 import { 
   StudentProfile, 
   SchoolClassSection, 
@@ -91,6 +94,36 @@ export const TeacherAdvisoryManager: React.FC<TeacherAdvisoryManagerProps> = ({
   // Alerts
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isUploadingToDrive, setIsUploadingToDrive] = useState(false);
+
+  const handleBackupSF1ToDrive = async () => {
+    if (!currentSection) return;
+    
+    if (!confirm(`Upload official DepEd SF1 Register for "${currentSection.sectionName}" (${sectionStudents.length} learners) to the linked Google Drive folder?`)) {
+      return;
+    }
+
+    setIsUploadingToDrive(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      let token = await getAccessToken();
+      if (!token) {
+        const res = await signInWithGoogle();
+        token = res.accessToken;
+      }
+
+      await backupSectionSF1ToDrive(currentSection, sectionStudents);
+      setSuccessMessage(`Success! SF1 School Register for "${currentSection.sectionName}" has been uploaded to your Google Drive folder.`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || 'Failed to upload SF1 to Google Drive.');
+    } finally {
+      setIsUploadingToDrive(false);
+    }
+  };
 
   const refreshData = () => {
     setSections(schoolDb.getSections());
@@ -389,6 +422,16 @@ export const TeacherAdvisoryManager: React.FC<TeacherAdvisoryManagerProps> = ({
             >
               <Printer className="w-3.5 h-3.5" />
               <span>Print SF1</span>
+            </button>
+
+            <button
+              onClick={handleBackupSF1ToDrive}
+              disabled={isUploadingToDrive}
+              className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 text-xs font-semibold rounded-lg flex items-center gap-1.5 cursor-pointer no-print transition-colors disabled:opacity-50"
+              title="Upload official SF1 School Register to linked Google Drive folder"
+            >
+              <Cloud className="w-3.5 h-3.5 text-blue-700" />
+              <span>{isUploadingToDrive ? 'Uploading...' : 'Save SF1 to Drive'}</span>
             </button>
           </div>
         </div>

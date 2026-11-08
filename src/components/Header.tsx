@@ -5,19 +5,22 @@ import {
   GraduationCap, 
   BookOpen, 
   UserCheck, 
-  ChevronRight
+  ChevronRight,
+  FileCheck2
 } from 'lucide-react';
 
 interface HeaderProps {
   activeSection: string;
   onNavigate: (sectionId: string) => void;
   onOpenPortal: (role?: 'student_parent' | 'teacher' | 'admin') => void;
+  onOpenEnrollmentPortal?: (tab?: 'enroll' | 'status' | 'guidelines') => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   activeSection,
   onNavigate,
   onOpenPortal,
+  onOpenEnrollmentPortal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -105,10 +108,21 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           {/* Action Zone: Portal Access & Mobile Menu Toggle */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+            {onOpenEnrollmentPortal && (
+              <button
+                onClick={() => onOpenEnrollmentPortal('enroll')}
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-xs transition-colors whitespace-nowrap cursor-pointer border border-emerald-600/30"
+                title="Open Dedicated Online Enrollment Portal"
+              >
+                <FileCheck2 className="w-4 h-4 text-emerald-300" />
+                <span>Online Enrollment</span>
+              </button>
+            )}
+
             <button
               onClick={() => onOpenPortal()}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap cursor-pointer"
+              className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap cursor-pointer"
             >
               <UserCheck className="w-4 h-4 text-amber-300" />
               <span>School Portal</span>
@@ -172,6 +186,18 @@ export const Header: React.FC<HeaderProps> = ({
           ))}
 
           <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            {onOpenEnrollmentPortal && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenEnrollmentPortal('enroll');
+                }}
+                className="w-full flex items-center justify-center gap-2 py-2.5 bg-emerald-800 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 cursor-pointer shadow-xs"
+              >
+                <FileCheck2 className="w-4 h-4 text-emerald-300" />
+                <span>Online Enrollment Portal (BEEF)</span>
+              </button>
+            )}
             <button
               onClick={() => {
                 setMobileMenuOpen(false);

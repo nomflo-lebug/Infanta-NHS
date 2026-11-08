@@ -38,6 +38,7 @@ import { PortalLogin } from './PortalLogin';
 import { AdminSectionsManager } from './AdminSectionsManager';
 import { AdminAccountsManager } from './AdminAccountsManager';
 import { TeacherAdvisoryManager } from './TeacherAdvisoryManager';
+import { GoogleDriveBackupManager } from './GoogleDriveBackupManager';
 
 interface PortalModalProps {
   isOpen: boolean;
@@ -1375,17 +1376,21 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                 </div>
               )}
 
-              {/* Subtab 3: Database Tools */}
+              {/* Subtab 3: Database Tools & Cloud Backup */}
               {adminTab === 'database' && (
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
-                  <div className="border-b border-slate-100 pb-3">
-                    <h4 className="text-base font-bold text-slate-900">
-                      Local Database Management & Backup Controls
-                    </h4>
-                    <p className="text-xs text-slate-500">
-                      Manage all student profiles, quarterly grades, teacher accounts, and activity records.
-                    </p>
-                  </div>
+                <div className="space-y-6">
+                  {/* Google Drive Cloud Backup & Organization Panel */}
+                  <GoogleDriveBackupManager />
+
+                  <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-6">
+                    <div className="border-b border-slate-100 pb-3">
+                      <h4 className="text-base font-bold text-slate-900">
+                        Local Database Tools & Factory Reset
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        Offline exports, raw JSON downloads, and emergency state recovery.
+                      </p>
+                    </div>
 
                   <div className="grid sm:grid-cols-3 gap-4">
                     <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-2">
@@ -1434,6 +1439,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     </div>
                   </div>
                 </div>
+              </div>
               )}
 
             </div>

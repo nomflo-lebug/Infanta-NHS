@@ -14,11 +14,13 @@ import {
 interface HeroSectionProps {
   onNavigate: (sectionId: string) => void;
   onOpenPortal: (role?: 'student_parent' | 'teacher' | 'admin') => void;
+  onOpenEnrollmentPortal?: (tab?: 'enroll' | 'status' | 'guidelines') => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onNavigate,
   onOpenPortal,
+  onOpenEnrollmentPortal,
 }) => {
   return (
     <section className="relative overflow-hidden bg-slate-900 text-white">
@@ -58,11 +60,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Call to Actions */}
             <div className="flex flex-wrap items-center gap-3.5 pt-2">
               <button
-                onClick={() => onNavigate('admissions')}
+                onClick={() => onOpenEnrollmentPortal ? onOpenEnrollmentPortal('enroll') : onNavigate('admissions')}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 text-sm font-bold rounded-lg shadow-lg shadow-amber-500/20 transition-all cursor-pointer"
+                title="Launch Dedicated Online Enrollment Portal"
               >
                 <FileText className="w-4 h-4" />
-                <span>Online Enrollment Form</span>
+                <span>Online Enrollment Portal</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 

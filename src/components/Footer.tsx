@@ -5,9 +5,14 @@ import { VisitorCounter } from './VisitorCounter';
 interface FooterProps {
   onNavigate: (sectionId: string) => void;
   onOpenPortal: (role?: 'student_parent' | 'teacher' | 'admin') => void;
+  onOpenEnrollmentPortal?: (tab?: 'enroll' | 'status' | 'guidelines') => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPortal }) => {
+export const Footer: React.FC<FooterProps> = ({ 
+  onNavigate, 
+  onOpenPortal,
+  onOpenEnrollmentPortal 
+}) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -120,8 +125,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate, onOpenPortal }) => {
             <h5 className="text-xs font-bold uppercase tracking-wider text-white">Online Services</h5>
             <ul className="space-y-2 text-slate-400">
               <li>
-                <button onClick={() => onNavigate('admissions')} className="hover:text-white transition-colors cursor-pointer">
-                  Online Enrollment Form
+                <button 
+                  onClick={() => onOpenEnrollmentPortal ? onOpenEnrollmentPortal('enroll') : onNavigate('admissions')} 
+                  className="hover:text-white transition-colors cursor-pointer text-amber-300 font-semibold"
+                >
+                  Online Enrollment Portal
                 </button>
               </li>
               <li>

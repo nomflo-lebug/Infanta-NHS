@@ -15,13 +15,16 @@ import { SchoolUpdatesSection } from './components/SchoolUpdatesSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { PortalModal } from './components/portal/PortalModal';
+import { EnrollmentPortalModal } from './components/portal/EnrollmentPortalModal';
 import { Role } from './types/school';
-import { GraduationCap, ArrowRight } from 'lucide-react';
+import { GraduationCap, ArrowRight, FileCheck2 } from 'lucide-react';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
   const [portalOpen, setPortalOpen] = useState(false);
   const [portalRole, setPortalRole] = useState<Role>('student_parent');
+  const [enrollmentPortalOpen, setEnrollmentPortalOpen] = useState(false);
+  const [enrollmentTab, setEnrollmentTab] = useState<'enroll' | 'status' | 'guidelines'>('enroll');
 
   const handleNavigate = (sectionId: string) => {
     setActiveSection(sectionId);
@@ -40,6 +43,11 @@ export default function App() {
     setPortalOpen(true);
   };
 
+  const handleOpenEnrollmentPortal = (tab: 'enroll' | 'status' | 'guidelines' = 'enroll') => {
+    setEnrollmentTab(tab);
+    setEnrollmentPortalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 antialiased font-sans">
       {/* Sticky Header with School Logo Placeholder & Identity */}
@@ -47,6 +55,7 @@ export default function App() {
         activeSection={activeSection}
         onNavigate={handleNavigate}
         onOpenPortal={handleOpenPortal}
+        onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
       />
 
       {/* Main Content Area */}
@@ -55,19 +64,23 @@ export default function App() {
         <HeroSection
           onNavigate={handleNavigate}
           onOpenPortal={handleOpenPortal}
+          onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
         />
 
         {/* School Updates & Activities Bulletin */}
         <SchoolUpdatesSection />
 
-        {/* Admissions & Online Enrollment (DepEd BEEG form) */}
-        <AdmissionsSection onOpenPortal={handleOpenPortal} />
+        {/* Admissions & Online Enrollment Guide */}
+        <AdmissionsSection 
+          onOpenPortal={handleOpenPortal}
+          onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
+        />
 
         {/* Junior High School (Grades 7 to 10 + STE) */}
-        <JuniorHighSection onNavigateToEnroll={() => handleNavigate('admissions')} />
+        <JuniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
 
         {/* Senior High School (Academic & TVL Strands + Labs) */}
-        <SeniorHighSection onNavigateToEnroll={() => handleNavigate('admissions')} />
+        <SeniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
 
         {/* Student Life & Organizations (SSLG, Journalism, Clubs) */}
         <StudentLifeSection />
@@ -83,21 +96,43 @@ export default function App() {
       <Footer
         onNavigate={handleNavigate}
         onOpenPortal={handleOpenPortal}
+        onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
       />
 
-      {/* Interactive Academic Portal Modal */}
+      {/* Interactive Academic Portal Modal (Faculty, Admin, Students) */}
       <PortalModal
         isOpen={portalOpen}
         onClose={() => setPortalOpen(false)}
         initialRole={portalRole}
       />
 
-      {/* Persistent Floating Portal Launcher */}
-      <aside aria-label="Portal Quick Launcher" className="fixed bottom-20 sm:bottom-24 right-6 sm:right-8 z-30 no-print">
+      {/* Dedicated Standalone Online Enrollment Portal Modal */}
+      <EnrollmentPortalModal
+        isOpen={enrollmentPortalOpen}
+        onClose={() => setEnrollmentPortalOpen(false)}
+        initialTab={enrollmentTab}
+      />
+
+      {/* Persistent Floating Quick Launchers */}
+      <aside aria-label="Portal Quick Launchers" className="fixed bottom-20 sm:bottom-24 right-4 sm:right-6 z-30 no-print flex flex-col items-end gap-2.5">
+        <button
+          onClick={() => handleOpenEnrollmentPortal('enroll')}
+          className="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-800 hover:bg-emerald-700 active:bg-emerald-900 text-white rounded-full shadow-lg hover:shadow-xl border border-emerald-400/40 transition-all duration-200 cursor-pointer group"
+          title="Open Dedicated Online Enrollment Portal"
+        >
+          <FileCheck2 className="w-4 h-4 text-emerald-300 group-hover:scale-110 transition-transform" />
+          <span className="text-xs font-bold tracking-wide">
+            Enroll Online
+          </span>
+          <span className="hidden sm:inline text-[10px] bg-emerald-950 text-emerald-300 font-mono px-1.5 py-0.5 rounded-full font-bold">
+            2026–2027
+          </span>
+        </button>
+
         <button
           onClick={() => handleOpenPortal('student_parent')}
           className="flex items-center gap-2.5 px-4 py-3 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white rounded-full shadow-xl hover:shadow-2xl border border-amber-400/30 transition-all duration-200 cursor-pointer group"
-          title="Open Infanta NHS Portal"
+          title="Open Infanta NHS Portal (Faculty / Admin / Students)"
         >
           <GraduationCap className="w-5 h-5 text-amber-300 group-hover:scale-110 transition-transform" />
           <span className="text-xs font-bold tracking-wide hidden sm:inline">
