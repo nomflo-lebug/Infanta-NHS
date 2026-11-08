@@ -58,6 +58,9 @@ export const Footer: React.FC<FooterProps> = ({
               <div className="w-16 h-16 shrink-0 rounded-full overflow-hidden flex items-center justify-center">
                 <img
                   src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/assets/images/logo_cropped.png';
+                  }}
                   alt="Infanta NHS Official Logo"
                   className="w-full h-full object-cover scale-[1.04] rounded-full"
                 />

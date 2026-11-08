@@ -143,6 +143,9 @@ export const AboutSection: React.FC = () => {
                 <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-md">
                   <img
                     src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/assets/images/logo_cropped.png';
+                    }}
                     alt="Official Infanta National High School Emblem"
                     className="w-full h-full object-cover scale-[1.04] rounded-full"
                   />
