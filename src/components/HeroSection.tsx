@@ -11,8 +11,6 @@ import {
   BookOpenCheck
 } from 'lucide-react';
 
-import campusFacadeImg from '../assets/images/school_campus_facade_1793804196290.jpg';
-
 interface HeroSectionProps {
   onNavigate: (sectionId: string) => void;
   onOpenPortal: (role?: 'student_parent' | 'teacher' | 'admin') => void;
@@ -29,11 +27,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
       {/* Background Campus Facade with Scrim */}
       <div className="absolute inset-0 z-0">
         <img
-          src={campusFacadeImg}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/assets/images/school_campus_facade_1793804196290.jpg';
-          }}
+          src="/src/assets/images/school_campus_facade_1793804196290.jpg"
           alt="Infanta National High School Campus"
+          referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center scale-105 filter brightness-75 contrast-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-blue-950/60" />

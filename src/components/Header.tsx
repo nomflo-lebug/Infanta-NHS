@@ -23,27 +23,16 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenEnrollmentPortal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [visitCount, setVisitCount] = useState<string>('1');
-
-  useEffect(() => {
-    const updateCount = () => {
-      const stored = localStorage.getItem('inhs_total_visits_v2') || '1';
-      setVisitCount(stored);
-    };
-    updateCount();
-    window.addEventListener('inhs_visits_updated', updateCount);
-    return () => window.removeEventListener('inhs_visits_updated', updateCount);
-  }, []);
 
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'updates', label: 'Updates & Calendar' },
-    { id: 'student-life', label: 'Student Life' },
+    { id: 'about', label: 'About INHS' },
+    { id: 'admissions', label: 'Admissions & Enrollment' },
     { id: 'junior-high', label: 'Junior High School' },
     { id: 'senior-high', label: 'Senior High School' },
-    { id: 'admissions', label: 'Admissions & Enrollment' },
-    { id: 'about', label: 'About INHS' },
-    { id: 'contact', label: 'Contact us' },
+    { id: 'student-life', label: 'Student Life' },
+    { id: 'updates', label: 'Updates & Calendar' },
+    { id: 'contact', label: 'Contact Us' },
   ];
 
   const handleNavClick = (id: string) => {
@@ -76,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-[10px] uppercase font-bold text-slate-400">Visits:</span>
-              <span className="font-semibold text-amber-300 font-mono">{visitCount}</span>
+              <span className="font-semibold text-amber-300 font-mono">128K+</span>
             </button>
             <span className="text-slate-700">|</span>
             <span>School ID: <strong className="text-amber-300 font-semibold">301332</strong></span>
@@ -99,9 +88,6 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
               <img 
                 src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png" 
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/assets/images/logo_cropped.png';
-                }}
                 alt="Infanta National High School Official Seal" 
                 className="w-full h-full object-cover scale-[1.04] rounded-full transition-transform group-hover:scale-110 duration-200"
               />

@@ -11,8 +11,6 @@ import {
   Sparkles
 } from 'lucide-react';
 
-import studentLifeImg from '../assets/images/school_student_life_1793804199202.jpg';
-
 export const StudentLifeSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'sslg' | 'journalism' | 'clubs' | 'events'>('sslg');
 
@@ -77,11 +75,9 @@ export const StudentLifeSection: React.FC = () => {
           <div className="grid lg:grid-cols-12 items-center bg-slate-900 text-white">
             <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px] order-last lg:order-first">
               <img
-                src={studentLifeImg}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/assets/images/school_student_life_1793804199202.jpg';
-                }}
+                src="/src/assets/images/school_student_life_1793804199202.jpg"
                 alt="Infanta NHS Learner Government Council and Student Life"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-center filter brightness-95"
               />
             </div>

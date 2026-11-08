@@ -152,11 +152,11 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-white/10 p-1 flex items-center justify-center border border-white/20">
               <img
-                src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
+                src="/assets/images/logo_cropped.png"
                 alt="INHS Crest"
                 className="w-10 h-10 object-contain drop-shadow"
                 onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/assets/images/logo_cropped.png';
+                  (e.target as HTMLElement).style.display = 'none';
                 }}
               />
             </div>

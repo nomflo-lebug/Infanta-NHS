@@ -13,8 +13,6 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-import stemLabImg from '../assets/images/classroom_stem_laboratory_1793804197413.jpg';
-
 interface SeniorHighSectionProps {
   onNavigateToEnroll: () => void;
 }
@@ -129,11 +127,9 @@ export const SeniorHighSection: React.FC<SeniorHighSectionProps> = ({ onNavigate
             </div>
             <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px]">
               <img
-                src={stemLabImg}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = '/assets/images/classroom_stem_laboratory_1793804197413.jpg';
-                }}
+                src="/src/assets/images/classroom_stem_laboratory_1793804197413.jpg"
                 alt="Infanta NHS STEM Science Laboratory"
+                referrerPolicy="no-referrer"
                 className="w-full h-full object-cover object-center filter brightness-95"
               />
             </div>
