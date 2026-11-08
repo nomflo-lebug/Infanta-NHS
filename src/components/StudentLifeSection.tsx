@@ -54,7 +54,7 @@ export const StudentLifeSection: React.FC = () => {
   ];
 
   return (
-    <section id="student-life" className="py-20 bg-white border-b border-slate-200">
+    <section id="student-life" className="py-20 bg-white border-b border-slate-200 scroll-mt-48 sm:scroll-mt-52 lg:scroll-mt-56">
       <div className="max-w-7xl mx-auto px-4 sm:px-8">
         
         {/* Section Header */}

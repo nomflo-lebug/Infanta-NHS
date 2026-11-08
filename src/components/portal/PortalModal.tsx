@@ -39,6 +39,9 @@ import { AdminSectionsManager } from './AdminSectionsManager';
 import { AdminAccountsManager } from './AdminAccountsManager';
 import { TeacherAdvisoryManager } from './TeacherAdvisoryManager';
 import { GoogleDriveBackupManager } from './GoogleDriveBackupManager';
+import { AdminCurriculumManager } from './AdminCurriculumManager';
+import { AdminEnrollmentApplicationsManager } from './AdminEnrollmentApplicationsManager';
+import { TeacherLoadsManager } from './TeacherLoadsManager';
 
 interface PortalModalProps {
   isOpen: boolean;
@@ -91,15 +94,15 @@ export const PortalModal: React.FC<PortalModalProps> = ({
   const [studentTab, setStudentTab] = useState<'sf9' | 'profile' | 'core_values' | 'attendance'>('sf9');
   
   // Teacher Portal State
-  const [teacherTab, setTeacherTab] = useState<'grading' | 'advisory'>('grading');
+  const [teacherTab, setTeacherTab] = useState<'grading' | 'loads' | 'advisory'>('grading');
   const [selectedTeacherId, setSelectedTeacherId] = useState<string>('t-101');
   const [selectedLoadIndex, setSelectedLoadIndex] = useState<number>(0);
-  const [editableGrades, setEditableGrades] = useState<Record<string, { q1: number | null; q2: number | null; q3: number | null; q4: number | null; remarks?: string }>>({});
+  const [editableGrades, setEditableGrades] = useState<Record<string, { term1: number | null; term2: number | null; term3: number | null; remarks?: string }>>({});
   const [adviserRemarksDraft, setAdviserRemarksDraft] = useState<Record<string, string>>({});
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   // Admin Portal State
-  const [adminTab, setAdminTab] = useState<'sections' | 'accounts' | 'applications' | 'announcements' | 'database'>('sections');
+  const [adminTab, setAdminTab] = useState<'sections' | 'curriculum' | 'applications' | 'accounts' | 'announcements' | 'database'>('sections');
   const [newNoticeTitle, setNewNoticeTitle] = useState('');
   const [newNoticeCategory, setNewNoticeCategory] = useState<'Announcement' | 'Academic' | 'Activities' | 'Admissions'>('Announcement');
   const [newNoticeSummary, setNewNoticeSummary] = useState('');
@@ -147,26 +150,25 @@ export const PortalModal: React.FC<PortalModalProps> = ({
     return s.gradeLevel === currentLoad.grade && s.section === currentLoad.section;
   });
 
-  // Initialize teacher editable grades when section changes
+  // Initialize teacher editable grades when section or load changes (3 Terms)
   useEffect(() => {
     if (!currentLoad) return;
-    const initialDraft: Record<string, { q1: number | null; q2: number | null; q3: number | null; q4: number | null }> = {};
+    const initialDraft: Record<string, { term1: number | null; term2: number | null; term3: number | null }> = {};
     const remarksDraft: Record<string, string> = {};
 
     sectionStudents.forEach(st => {
       const subj = st.grades.find(g => g.subjectId === currentLoad.subjectId);
       initialDraft[st.id] = {
-        q1: subj?.q1 ?? null,
-        q2: subj?.q2 ?? null,
-        q3: subj?.q3 ?? null,
-        q4: subj?.q4 ?? null,
+        term1: subj?.term1 ?? subj?.q1 ?? null,
+        term2: subj?.term2 ?? subj?.q2 ?? null,
+        term3: subj?.term3 ?? subj?.q3 ?? null,
       };
       remarksDraft[st.id] = st.adviserRemarks || '';
     });
 
     setEditableGrades(initialDraft);
     setAdviserRemarksDraft(remarksDraft);
-  }, [selectedTeacherId, selectedLoadIndex, students.length]);
+  }, [selectedTeacherId, selectedLoadIndex, currentLoad?.subjectId, students.length]);
 
   if (!isOpen) return null;
 
@@ -181,7 +183,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
     }
   };
 
-  // Teacher Grade Save
+  // Teacher Grade Save (3 Terms)
   const handleSaveGrades = () => {
     if (!currentLoad) return;
 
@@ -193,17 +195,20 @@ export const PortalModal: React.FC<PortalModalProps> = ({
       const existingGrades = [...st.grades];
       const subjIndex = existingGrades.findIndex(g => g.subjectId === currentLoad.subjectId);
 
-      const computedFinal = calculateSubjectFinal(draft);
+      const computedFinal = calculateSubjectFinal({
+        term1: draft.term1,
+        term2: draft.term2,
+        term3: draft.term3,
+      });
 
       const updatedSubj: SubjectGrade = {
         subjectId: currentLoad.subjectId,
-        subjectCode: currentLoad.subjectId.toUpperCase(),
+        subjectCode: currentLoad.subjectCode || currentLoad.subjectId.toUpperCase(),
         subjectTitle: currentLoad.subjectTitle,
         teacherName: currentTeacher.name,
-        q1: draft.q1,
-        q2: draft.q2,
-        q3: draft.q3,
-        q4: draft.q4,
+        term1: draft.term1,
+        term2: draft.term2,
+        term3: draft.term3,
         finalRating: computedFinal.finalRating,
         remarks: computedFinal.remarks,
       };
@@ -219,7 +224,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
       updatedCount++;
     });
 
-    setSaveSuccessMsg(`Successfully saved and updated grades for ${updatedCount} students in ${currentLoad.section}!`);
+    setSaveSuccessMsg(`Successfully saved and updated 3-term grades for ${updatedCount} students in ${currentLoad.section}!`);
     setTimeout(() => setSaveSuccessMsg(null), 4000);
   };
 
@@ -547,16 +552,15 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                         </button>
                       </div>
 
-                      {/* Grades Table */}
+                      {/* Grades Table (3 Terms / Semesters Per School Year) */}
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs border border-slate-200">
                           <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider font-semibold">
                             <tr>
                               <th className="p-3 border-b border-slate-200">Learning Areas / Subjects</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-16">Q1</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-16">Q2</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-16">Q3</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-16">Q4</th>
+                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 1</th>
+                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 2</th>
+                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 3</th>
                               <th className="p-3 border-b border-slate-200 text-center w-24">Final Rating</th>
                               <th className="p-3 border-b border-slate-200 text-center w-24">Remarks</th>
                             </tr>
@@ -568,11 +572,10 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                                   <div className="font-semibold text-slate-900">{grade.subjectTitle}</div>
                                   <div className="text-[11px] text-slate-500">{grade.teacherName}</div>
                                 </td>
-                                <td className="p-3 text-center font-mono-num">{grade.q1 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num">{grade.q2 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num">{grade.q3 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num">{grade.q4 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num font-bold text-slate-900">
+                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term1 ?? grade.q1 ?? '—'}</td>
+                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term2 ?? grade.q2 ?? '—'}</td>
+                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term3 ?? grade.q3 ?? '—'}</td>
+                                <td className="p-3 text-center font-mono-num font-bold text-slate-900 text-sm">
                                   {grade.finalRating ?? '—'}
                                 </td>
                                 <td className="p-3 text-center">
@@ -591,8 +594,8 @@ export const PortalModal: React.FC<PortalModalProps> = ({
 
                             {currentStudent.grades.length === 0 && (
                               <tr>
-                                <td colSpan={7} className="p-6 text-center text-slate-400">
-                                  No subjects enrolled for this school term yet.
+                                <td colSpan={6} className="p-6 text-center text-slate-400">
+                                  No subjects enrolled for this school year yet.
                                 </td>
                               </tr>
                             )}
@@ -602,8 +605,8 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                               <td className="p-3 text-right uppercase tracking-wider text-xs">
                                 General Average:
                               </td>
-                              <td colSpan={4} className="p-3 text-center text-slate-400 text-[11px] font-normal">
-                                (DepEd DepEd K-12 Transmutation Standard)
+                              <td colSpan={3} className="p-3 text-center text-slate-400 text-[11px] font-normal">
+                                (Computed across the 3 Academic Terms / Semesters)
                               </td>
                               <td className="p-3 text-center font-mono-num text-sm text-blue-900">
                                 {currentStudent.generalAverage !== null ? currentStudent.generalAverage.toFixed(2) : '—'}
@@ -637,12 +640,12 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     </div>
                   )}
 
-                  {/* Tab 2: Core Values Observed */}
+                  {/* Tab 2: Core Values Observed (3 Terms) */}
                   {studentTab === 'core_values' && (
                     <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
                       <div className="border-b border-slate-100 pb-3">
                         <h4 className="text-base font-bold text-slate-900">
-                          Report on Learner's Observed Core Values
+                          Report on Learner's Observed Core Values (3 Terms)
                         </h4>
                         <p className="text-xs text-slate-500">
                           Marking scale: <strong>AO</strong> (Always Observed) · <strong>SO</strong> (Sometimes Observed) · <strong>RO</strong> (Rarely Observed) · <strong>NO</strong> (Not Observed)
@@ -654,10 +657,9 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                           <tr>
                             <th className="p-3 border-b border-slate-200">Core Value</th>
                             <th className="p-3 border-b border-slate-200">Behavior Statements</th>
-                            <th className="p-3 border-b border-slate-200 text-center w-14">Q1</th>
-                            <th className="p-3 border-b border-slate-200 text-center w-14">Q2</th>
-                            <th className="p-3 border-b border-slate-200 text-center w-14">Q3</th>
-                            <th className="p-3 border-b border-slate-200 text-center w-14">Q4</th>
+                            <th className="p-3 border-b border-slate-200 text-center w-16">Term 1</th>
+                            <th className="p-3 border-b border-slate-200 text-center w-16">Term 2</th>
+                            <th className="p-3 border-b border-slate-200 text-center w-16">Term 3</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -665,10 +667,9 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                             <tr key={cv.id} className="hover:bg-slate-50">
                               <td className="p-3 font-bold text-blue-900">{cv.coreValue}</td>
                               <td className="p-3 text-slate-700">{cv.behaviorStatement}</td>
-                              <td className="p-3 text-center font-mono-num font-semibold">{cv.q1}</td>
-                              <td className="p-3 text-center font-mono-num font-semibold">{cv.q2}</td>
-                              <td className="p-3 text-center font-mono-num font-semibold">{cv.q3}</td>
-                              <td className="p-3 text-center font-mono-num font-semibold">{cv.q4}</td>
+                              <td className="p-3 text-center font-mono-num font-semibold">{cv.term1 ?? cv.q1 ?? 'AO'}</td>
+                              <td className="p-3 text-center font-mono-num font-semibold">{cv.term2 ?? cv.q2 ?? 'AO'}</td>
+                              <td className="p-3 text-center font-mono-num font-semibold">{cv.term3 ?? cv.q3 ?? 'AO'}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -811,10 +812,10 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                 </div>
 
                 {/* Sub-navigation tabs for Faculty */}
-                <div className="flex border-b border-slate-200 gap-1 sm:gap-2 pb-px">
+                <div className="flex border-b border-slate-200 gap-1 sm:gap-2 pb-px overflow-x-auto">
                   <button
                     onClick={() => setTeacherTab('grading')}
-                    className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                       teacherTab === 'grading'
                         ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -824,8 +825,19 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     <span>Subject Grading Console (SF9)</span>
                   </button>
                   <button
+                    onClick={() => setTeacherTab('loads')}
+                    className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                      teacherTab === 'loads'
+                        ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5 text-amber-500" />
+                    <span>My Teaching Loads (Classes & Subjects)</span>
+                  </button>
+                  <button
                     onClick={() => setTeacherTab('advisory')}
-                    className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                       teacherTab === 'advisory'
                         ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -840,6 +852,14 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                   <TeacherAdvisoryManager
                     currentTeacher={currentTeacher}
                     isCurrentUserAdmin={currentUser.role === 'admin'}
+                  />
+                ) : teacherTab === 'loads' ? (
+                  <TeacherLoadsManager
+                    currentTeacher={currentTeacher}
+                    onLoadAdded={() => {
+                      setSelectedLoadIndex(0);
+                      setTeacherTab('grading');
+                    }}
                   />
                 ) : (
                   <>
@@ -928,18 +948,21 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                       <tr>
                         <th className="p-3 border-b border-slate-200 w-12 text-center">#</th>
                         <th className="p-3 border-b border-slate-200">Learner Name & LRN</th>
-                        <th className="p-3 border-b border-slate-200 text-center w-20">Q1 Grade</th>
-                        <th className="p-3 border-b border-slate-200 text-center w-20">Q2 Grade</th>
-                        <th className="p-3 border-b border-slate-200 text-center w-20">Q3 Grade</th>
-                        <th className="p-3 border-b border-slate-200 text-center w-20">Q4 Grade</th>
+                        <th className="p-3 border-b border-slate-200 text-center w-24">Term 1</th>
+                        <th className="p-3 border-b border-slate-200 text-center w-24">Term 2</th>
+                        <th className="p-3 border-b border-slate-200 text-center w-24">Term 3</th>
                         <th className="p-3 border-b border-slate-200 text-center w-24">Final Rating</th>
-                        <th className="p-3 border-b border-slate-200 w-64">Adviser Observations / Suggestions</th>
+                        <th className="p-3 border-b border-slate-200 w-64">Teacher Observations / Suggestions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {sectionStudents.map((st, idx) => {
-                        const draft = editableGrades[st.id] || { q1: null, q2: null, q3: null, q4: null };
-                        const finalCalc = calculateSubjectFinal(draft);
+                        const draft = editableGrades[st.id] || { term1: null, term2: null, term3: null };
+                        const finalCalc = calculateSubjectFinal({
+                          term1: draft.term1,
+                          term2: draft.term2,
+                          term3: draft.term3,
+                        });
 
                         return (
                           <tr key={st.id} className="hover:bg-slate-50">
@@ -948,72 +971,58 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                               <div className="font-bold text-slate-900">{st.lastName}, {st.firstName}</div>
                               <div className="text-[11px] font-mono text-slate-500">{st.lrn}</div>
                             </td>
-                            {/* Q1 */}
+                            {/* Term 1 */}
                             <td className="p-2 text-center">
                               <input
                                 type="number"
                                 min={60}
                                 max={100}
-                                value={draft.q1 ?? ''}
+                                placeholder="—"
+                                value={draft.term1 ?? ''}
                                 onChange={(e) => {
                                   const val = e.target.value === '' ? null : Number(e.target.value);
                                   setEditableGrades({
                                     ...editableGrades,
-                                    [st.id]: { ...draft, q1: val }
+                                    [st.id]: { ...draft, term1: val }
                                   });
                                 }}
-                                className="w-16 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
+                                className="w-18 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
                               />
                             </td>
-                            {/* Q2 */}
+                            {/* Term 2 */}
                             <td className="p-2 text-center">
                               <input
                                 type="number"
                                 min={60}
                                 max={100}
-                                value={draft.q2 ?? ''}
+                                placeholder="—"
+                                value={draft.term2 ?? ''}
                                 onChange={(e) => {
                                   const val = e.target.value === '' ? null : Number(e.target.value);
                                   setEditableGrades({
                                     ...editableGrades,
-                                    [st.id]: { ...draft, q2: val }
+                                    [st.id]: { ...draft, term2: val }
                                   });
                                 }}
-                                className="w-16 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
+                                className="w-18 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
                               />
                             </td>
-                            {/* Q3 */}
+                            {/* Term 3 */}
                             <td className="p-2 text-center">
                               <input
                                 type="number"
                                 min={60}
                                 max={100}
-                                value={draft.q3 ?? ''}
+                                placeholder="—"
+                                value={draft.term3 ?? ''}
                                 onChange={(e) => {
                                   const val = e.target.value === '' ? null : Number(e.target.value);
                                   setEditableGrades({
                                     ...editableGrades,
-                                    [st.id]: { ...draft, q3: val }
+                                    [st.id]: { ...draft, term3: val }
                                   });
                                 }}
-                                className="w-16 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
-                              />
-                            </td>
-                            {/* Q4 */}
-                            <td className="p-2 text-center">
-                              <input
-                                type="number"
-                                min={60}
-                                max={100}
-                                value={draft.q4 ?? ''}
-                                onChange={(e) => {
-                                  const val = e.target.value === '' ? null : Number(e.target.value);
-                                  setEditableGrades({
-                                    ...editableGrades,
-                                    [st.id]: { ...draft, q4: val }
-                                  });
-                                }}
-                                className="w-16 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
+                                className="w-18 p-1.5 text-center text-xs font-mono-num border border-slate-300 rounded focus:border-blue-900 focus:outline-hidden"
                               />
                             </td>
                             {/* Computed Final */}
@@ -1152,6 +1161,28 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     <span>Classes & Sections</span>
                   </button>
                   <button
+                    onClick={() => setAdminTab('curriculum')}
+                    className={`px-3 sm:px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                      adminTab === 'curriculum'
+                        ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <BookOpen className="w-3.5 h-3.5" />
+                    <span>Curriculum & Subjects</span>
+                  </button>
+                  <button
+                    onClick={() => setAdminTab('applications')}
+                    className={`px-3 sm:px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+                      adminTab === 'applications'
+                        ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Enrollment Approvals ({applications.length})</span>
+                  </button>
+                  <button
                     onClick={() => setAdminTab('accounts')}
                     className={`px-3 sm:px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                       adminTab === 'accounts'
@@ -1163,16 +1194,6 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     <span>User Accounts</span>
                   </button>
                   <button
-                    onClick={() => setAdminTab('applications')}
-                    className={`px-3 sm:px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
-                      adminTab === 'applications'
-                        ? 'bg-white text-blue-900 border-t-2 border-t-blue-900 border-x border-slate-200 font-bold'
-                        : 'text-slate-600 hover:text-slate-900'
-                    }`}
-                  >
-                    <span>Applications ({applications.length})</span>
-                  </button>
-                  <button
                     onClick={() => setAdminTab('announcements')}
                     className={`px-3 sm:px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
                       adminTab === 'announcements'
@@ -1180,6 +1201,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
+                    <Calendar className="w-3.5 h-3.5" />
                     <span>Bulletin & Calendar</span>
                   </button>
                   <button
@@ -1190,6 +1212,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                         : 'text-slate-600 hover:text-slate-900'
                     }`}
                   >
+                    <RefreshCw className="w-3.5 h-3.5" />
                     <span>Database Backup</span>
                   </button>
                 </div>
@@ -1199,64 +1222,20 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                   <AdminSectionsManager />
                 )}
 
+                {/* Subtab: Curriculum & Subject Offerings (Encoded for 3 Terms) */}
+                {adminTab === 'curriculum' && (
+                  <AdminCurriculumManager />
+                )}
+
+                {/* Subtab: Enrollment Applications Review & Decision (Approve / Deny) */}
+                {adminTab === 'applications' && (
+                  <AdminEnrollmentApplicationsManager reviewerName={currentUser.fullName} />
+                )}
+
                 {/* Subtab: User Accounts Manager */}
                 {adminTab === 'accounts' && (
                   <AdminAccountsManager currentUser={currentUser} />
                 )}
-
-              {/* Subtab 1: Enrollment Applications Queue */}
-              {adminTab === 'applications' && (
-                <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h4 className="text-base font-bold text-slate-900">
-                      Submitted Basic Education Enrollment Applications
-                    </h4>
-                    <span className="text-xs text-slate-500">
-                      Verify submitted documents & approve for enrollment into S.Y. 2026-2027
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    {applications.map((app) => (
-                      <div key={app.id} className="p-4 rounded-lg border border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs text-blue-900 font-semibold">{app.id}</span>
-                            <span className="text-xs text-slate-400">·</span>
-                            <span className="text-sm font-bold text-slate-900">{app.firstName} {app.lastName}</span>
-                            <span className={`text-[10px] px-2 py-0.5 rounded font-semibold ${
-                              app.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
-                            }`}>
-                              {app.status}
-                            </span>
-                          </div>
-                          <div className="text-xs text-slate-600">
-                            Grade {app.targetGrade} · <strong>{app.targetStrand}</strong> · Contact: {app.contactNumber} ({app.guardianName})
-                          </div>
-                          <div className="text-[11px] text-slate-500">
-                            Documents: {app.documentsSubmitted.join(', ')}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          {app.status !== 'Approved' ? (
-                            <button
-                              onClick={() => handleApproveApp(app.id)}
-                              className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg cursor-pointer transition-colors"
-                            >
-                              Approve & Enroll
-                            </button>
-                          ) : (
-                            <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
-                              <CheckCircle className="w-3.5 h-3.5" /> Enrolled
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Subtab 2: Announcements & Calendar Manager */}
               {adminTab === 'announcements' && (

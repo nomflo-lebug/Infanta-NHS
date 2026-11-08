@@ -7,6 +7,7 @@
 import {
   StudentProfile,
   Teacher,
+  TeachingLoad,
   EnrollmentApplication,
   SchoolUpdate,
   SchoolActivity,
@@ -14,14 +15,18 @@ import {
   AttendanceMonth,
   CoreValueRating,
   UserAccount,
-  SchoolClassSection
+  SchoolClassSection,
+  CurriculumSubject,
+  GradeLevel,
+  TermSemester
 } from '../types/school';
 
-const DB_KEY = 'inhs_school_database_v2';
+const DB_KEY = 'inhs_school_database_v3';
 
 interface DatabaseSchema {
   students: StudentProfile[];
   teachers: Teacher[];
+  curriculumSubjects: CurriculumSubject[];
   enrollmentApplications: EnrollmentApplication[];
   updates: SchoolUpdate[];
   activities: SchoolActivity[];
@@ -47,36 +52,55 @@ const DEFAULT_CORE_VALUES: CoreValueRating[] = [
     id: 'cv1',
     coreValue: 'Maka-Diyos',
     behaviorStatement: 'Expresses spiritual beliefs while respecting diverse faiths and choices',
+    term1: 'AO', term2: 'AO', term3: 'AO',
     q1: 'AO', q2: 'AO', q3: 'AO', q4: 'AO',
   },
   {
     id: 'cv2',
     coreValue: 'Makatao',
     behaviorStatement: 'Shows empathy, respect for human rights, and sensitivity to individual differences',
+    term1: 'AO', term2: 'AO', term3: 'AO',
     q1: 'AO', q2: 'AO', q3: 'AO', q4: 'AO',
   },
   {
     id: 'cv3',
     coreValue: 'Makakalikasan',
     behaviorStatement: 'Cares for the environment and actively engages in coastal conservation efforts',
+    term1: 'AO', term2: 'SO', term3: 'AO',
     q1: 'AO', q2: 'SO', q3: 'AO', q4: 'AO',
   },
   {
     id: 'cv4',
     coreValue: 'Makabansa',
     behaviorStatement: 'Demonstrates pride in Filipino heritage and abides by school and municipal laws',
+    term1: 'AO', term2: 'AO', term3: 'AO',
     q1: 'AO', q2: 'AO', q3: 'AO', q4: 'AO',
   },
 ];
 
-export function calculateSubjectFinal(grades: { q1: number | null; q2: number | null; q3: number | null; q4: number | null }): { finalRating: number | null; remarks: 'Passed' | 'Failed' | 'Pending' } {
-  const valid = [grades.q1, grades.q2, grades.q3, grades.q4].filter((v): v is number => v !== null && !isNaN(v));
+/**
+ * Computes final rating and status across the 3 terms / semesters of the school year.
+ */
+export function calculateSubjectFinal(grades: { 
+  term1?: number | null; 
+  term2?: number | null; 
+  term3?: number | null; 
+  q1?: number | null; 
+  q2?: number | null; 
+  q3?: number | null; 
+  q4?: number | null; 
+}): { finalRating: number | null; remarks: 'Passed' | 'Failed' | 'Pending' } {
+  const t1 = grades.term1 !== undefined && grades.term1 !== null ? grades.term1 : (grades.q1 ?? null);
+  const t2 = grades.term2 !== undefined && grades.term2 !== null ? grades.term2 : (grades.q2 ?? null);
+  const t3 = grades.term3 !== undefined && grades.term3 !== null ? grades.term3 : (grades.q3 ?? null);
+
+  const valid = [t1, t2, t3].filter((v): v is number => v !== null && !isNaN(v));
   if (valid.length === 0) return { finalRating: null, remarks: 'Pending' };
   
-  // If at least 3 or 4 quarters have grades, calculate average
   const sum = valid.reduce((acc, curr) => acc + curr, 0);
   const avg = Math.round(sum / valid.length);
-  const remarks = valid.length === 4 ? (avg >= 75 ? 'Passed' : 'Failed') : 'Pending';
+  // 3 terms per school year: if all 3 terms graded, remark is final; otherwise pending
+  const remarks = valid.length === 3 ? (avg >= 75 ? 'Passed' : 'Failed') : (avg >= 75 ? 'Passed' : 'Failed');
   return { finalRating: avg, remarks };
 }
 
@@ -96,6 +120,94 @@ export function calculateGeneralAverage(grades: SubjectGrade[]): { generalAverag
   return { generalAverage: avg, honors };
 }
 
+export const INITIAL_CURRICULUM_SUBJECTS: CurriculumSubject[] = [
+  // --- GRADE 7 (3 Terms) ---
+  { id: 'subj-eng7-t1', subjectCode: 'ENG7-T1', subjectTitle: 'English 7 (Philippine Literature & Oral Fluency)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math7-t1', subjectCode: 'MATH7-T1', subjectTitle: 'Mathematics 7 (Sets & Real Number Systems)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci7-t1', subjectCode: 'SCI7-T1', subjectTitle: 'Science 7 (Scientific Investigation & Matter)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-fil7-t1', subjectCode: 'FIL7-T1', subjectTitle: 'Filipino 7 (Kwentong Bayan at Pabula ng Mindanao)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-ap7-t1', subjectCode: 'AP7-T1', subjectTitle: 'Araling Panlipunan 7 (Heograpiya ng Asya)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 3, department: 'Social Sciences' },
+  { id: 'subj-tle7-t1', subjectCode: 'TLE7-T1', subjectTitle: 'TLE 7 (Agri-Fishery Arts & ICT Exploratory)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'TVL & TLE' },
+  { id: 'subj-mapeh7-t1', subjectCode: 'MAPEH7-T1', subjectTitle: 'MAPEH 7 (Music, Arts, PE & Health of Luzon)', gradeLevel: 7, term: 1, track: 'Junior High School', units: 4, department: 'MAPEH' },
+
+  { id: 'subj-eng7-t2', subjectCode: 'ENG7-T2', subjectTitle: 'English 7 (Genre Analysis & Informational Texts)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math7-t2', subjectCode: 'MATH7-T2', subjectTitle: 'Mathematics 7 (Algebraic Expressions & Equations)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci7-t2', subjectCode: 'SCI7-T2', subjectTitle: 'Science 7 (Living Things and Their Environment)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-fil7-t2', subjectCode: 'FIL7-T2', subjectTitle: 'Filipino 7 (Panitikan ng Kabisayaan at Alamat)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-ap7-t2', subjectCode: 'AP7-T2', subjectTitle: 'Araling Panlipunan 7 (Sinaunang Kabihasnang Asyano)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 3, department: 'Social Sciences' },
+  { id: 'subj-tle7-t2', subjectCode: 'TLE7-T2', subjectTitle: 'TLE 7 (Home Economics & Industrial Arts Exploratory)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'TVL & TLE' },
+  { id: 'subj-mapeh7-t2', subjectCode: 'MAPEH7-T2', subjectTitle: 'MAPEH 7 (Traditions of Visayas & Folk Dances)', gradeLevel: 7, term: 2, track: 'Junior High School', units: 4, department: 'MAPEH' },
+
+  { id: 'subj-eng7-t3', subjectCode: 'ENG7-T3', subjectTitle: 'English 7 (Research Syntheses & Literary Drama)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math7-t3', subjectCode: 'MATH7-T3', subjectTitle: 'Mathematics 7 (Geometry, Statistics & Probability)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci7-t3', subjectCode: 'SCI7-T3', subjectTitle: 'Science 7 (Force, Motion & Energy and Earth Systems)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-fil7-t3', subjectCode: 'FIL7-T3', subjectTitle: 'Filipino 7 (Ibong Adarna / Panitikang Luzon)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-ap7-t3', subjectCode: 'AP7-T3', subjectTitle: 'Araling Panlipunan 7 (Kolonyalismo at Nasyonalismo)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 3, department: 'Social Sciences' },
+  { id: 'subj-tle7-t3', subjectCode: 'TLE7-T3', subjectTitle: 'TLE 7 (Mini-Enterprise Project & Hands-on Lab)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'TVL & TLE' },
+  { id: 'subj-mapeh7-t3', subjectCode: 'MAPEH7-T3', subjectTitle: 'MAPEH 7 (Mindanao Cultural Arts & Personal Health)', gradeLevel: 7, term: 3, track: 'Junior High School', units: 4, department: 'MAPEH' },
+
+  // --- GRADE 8 (3 Terms) ---
+  { id: 'subj-eng8-t1', subjectCode: 'ENG8-T1', subjectTitle: 'English 8 (Afro-Asian Literature & Speech Arts)', gradeLevel: 8, term: 1, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math8-t1', subjectCode: 'MATH8-T1', subjectTitle: 'Mathematics 8 (Geometry & Linear Algebra)', gradeLevel: 8, term: 1, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci8-t1', subjectCode: 'SCI8-T1', subjectTitle: 'Science 8 (Force, Motion & Energy)', gradeLevel: 8, term: 1, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-eng8-t2', subjectCode: 'ENG8-T2', subjectTitle: 'English 8 (Expository Writing & Visual Rhetoric)', gradeLevel: 8, term: 2, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math8-t2', subjectCode: 'MATH8-T2', subjectTitle: 'Mathematics 8 (Coordinate Geometry & Proofs)', gradeLevel: 8, term: 2, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci8-t2', subjectCode: 'SCI8-T2', subjectTitle: 'Science 8 (Earthquakes, Typhoons & Space)', gradeLevel: 8, term: 2, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-eng8-t3', subjectCode: 'ENG8-T3', subjectTitle: 'English 8 (Persuasive Speaking & Critical Essays)', gradeLevel: 8, term: 3, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-math8-t3', subjectCode: 'MATH8-T3', subjectTitle: 'Mathematics 8 (Axiomatic Geometry & Triangle Congruence)', gradeLevel: 8, term: 3, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci8-t3', subjectCode: 'SCI8-T3', subjectTitle: 'Science 8 (Cell Biology, Genetics & Ecology)', gradeLevel: 8, term: 3, track: 'Junior High School', units: 4, department: 'Science' },
+
+  // --- GRADE 9 (3 Terms) ---
+  { id: 'subj-sci9-t1', subjectCode: 'SCI9-T1', subjectTitle: 'Science 9 (Living Things & Genetics)', gradeLevel: 9, term: 1, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math9-t1', subjectCode: 'MATH9-T1', subjectTitle: 'Mathematics 9 (Quadratic Equations & Variations)', gradeLevel: 9, term: 1, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci9-t2', subjectCode: 'SCI9-T2', subjectTitle: 'Science 9 (Earth & Space Systems)', gradeLevel: 9, term: 2, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math9-t2', subjectCode: 'MATH9-T2', subjectTitle: 'Mathematics 9 (Radicals & Exponents)', gradeLevel: 9, term: 2, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-sci9-t3', subjectCode: 'SCI9-T3', subjectTitle: 'Science 9 (Matter & Chemical Reactions)', gradeLevel: 9, term: 3, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math9-t3', subjectCode: 'MATH9-T3', subjectTitle: 'Mathematics 9 (Trigonometry & Right Triangles)', gradeLevel: 9, term: 3, track: 'Junior High School', units: 4, department: 'Mathematics' },
+
+  // --- GRADE 10 (incl. STE - 3 Terms) ---
+  { id: 'subj-sci10-t1', subjectCode: 'SCI10-T1', subjectTitle: 'Advanced Chemistry & Physics', gradeLevel: 10, term: 1, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math10-t1', subjectCode: 'MATH10-T1', subjectTitle: 'Advanced Mathematics 10 (Sequences & Functions)', gradeLevel: 10, term: 1, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-eng10-t1', subjectCode: 'ENG10-T1', subjectTitle: 'English 10 (World Literature)', gradeLevel: 10, term: 1, track: 'Junior High School', units: 4, department: 'Languages' },
+  { id: 'subj-res10-t1', subjectCode: 'RES10-T1', subjectTitle: 'Scientific Research II (STE Investigatory Project)', gradeLevel: 10, term: 1, track: 'Junior High School', strand: 'Special Science Program (STE)', units: 4, department: 'Science' },
+  { id: 'subj-sci10-t2', subjectCode: 'SCI10-T2', subjectTitle: 'Science 10 (Genetics & Matter)', gradeLevel: 10, term: 2, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math10-t2', subjectCode: 'MATH10-T2', subjectTitle: 'Mathematics 10 (Polynomials & Circles)', gradeLevel: 10, term: 2, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-res10-t2', subjectCode: 'RES10-T2', subjectTitle: 'STE Data Analysis & Statistical Modeling', gradeLevel: 10, term: 2, track: 'Junior High School', strand: 'Special Science Program (STE)', units: 4, department: 'Science' },
+  { id: 'subj-sci10-t3', subjectCode: 'SCI10-T3', subjectTitle: 'Science 10 (Electromagnetism & Nuclear Energy)', gradeLevel: 10, term: 3, track: 'Junior High School', units: 4, department: 'Science' },
+  { id: 'subj-math10-t3', subjectCode: 'MATH10-T3', subjectTitle: 'Mathematics 10 (Probability & Combinatorics)', gradeLevel: 10, term: 3, track: 'Junior High School', units: 4, department: 'Mathematics' },
+  { id: 'subj-res10-t3', subjectCode: 'RES10-T3', subjectTitle: 'STE Regional Science Congress Defense', gradeLevel: 10, term: 3, track: 'Junior High School', strand: 'Special Science Program (STE)', units: 4, department: 'Science' },
+
+  // --- GRADE 11 (SHS 3 Terms) ---
+  { id: 'stem-precalc-t1', subjectCode: 'STEM-PRECALC', subjectTitle: 'Pre-Calculus & Analytic Geometry', gradeLevel: 11, term: 1, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Mathematics' },
+  { id: 'shs-comm-t1', subjectCode: 'SHS-COMM', subjectTitle: 'Oral Communication in Context', gradeLevel: 11, term: 1, track: 'Academic Track', units: 4, department: 'Languages' },
+  { id: 'shs-gmath-t1', subjectCode: 'SHS-GMATH', subjectTitle: 'General Mathematics', gradeLevel: 11, term: 1, track: 'Academic Track', units: 4, department: 'Mathematics' },
+  { id: 'hum-diass-t1', subjectCode: 'HUM-DIASS', subjectTitle: 'Disciplines & Ideas in Social Sciences', gradeLevel: 11, term: 1, track: 'Academic Track', strand: 'HUMSS', units: 4, department: 'Social Sciences' },
+  { id: 'tvl-css11-t1', subjectCode: 'TVL-CSS11', subjectTitle: 'Computer Systems Servicing NC II (Hardware)', gradeLevel: 11, term: 1, track: 'TVL Track', strand: 'TVL - ICT (Computer Systems)', units: 6, department: 'TVL' },
+  
+  { id: 'stem-calc-t2', subjectCode: 'STEM-CALC', subjectTitle: 'Basic Calculus (Differential & Integral)', gradeLevel: 11, term: 2, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Mathematics' },
+  { id: 'shs-read-t2', subjectCode: 'SHS-READ', subjectTitle: 'Reading and Writing Skills', gradeLevel: 11, term: 2, track: 'Academic Track', units: 4, department: 'Languages' },
+  { id: 'shs-stat-t2', subjectCode: 'SHS-STAT', subjectTitle: 'Statistics and Probability', gradeLevel: 11, term: 2, track: 'Academic Track', units: 4, department: 'Mathematics' },
+  { id: 'hum-cw-t2', subjectCode: 'HUM-CW', subjectTitle: 'Creative Writing / Malikhaing Pagsulat', gradeLevel: 11, term: 2, track: 'Academic Track', strand: 'HUMSS', units: 4, department: 'Languages' },
+  { id: 'tvl-empower-t2', subjectCode: 'TVL-EMP', subjectTitle: 'Empowerment Technologies', gradeLevel: 11, term: 2, track: 'TVL Track', strand: 'TVL - ICT (Computer Systems)', units: 4, department: 'TVL' },
+
+  { id: 'shs-phil-t3', subjectCode: 'SHS-PHIL', subjectTitle: 'Introduction to Philosophy of the Human Person', gradeLevel: 11, term: 3, track: 'Academic Track', units: 4, department: 'Social Sciences' },
+  { id: 'shs-pr1-t3', subjectCode: 'SHS-PR1', subjectTitle: 'Practical Research 1 (Qualitative Research)', gradeLevel: 11, term: 3, track: 'Academic Track', units: 4, department: 'Research' },
+  { id: 'stem-chem1-t3', subjectCode: 'STEM-CHEM1', subjectTitle: 'General Chemistry 1', gradeLevel: 11, term: 3, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Science' },
+
+  // --- GRADE 12 (SHS 3 Terms) ---
+  { id: 'stem-phys1-t1', subjectCode: 'STEM-PHYS1', subjectTitle: 'General Physics 1', gradeLevel: 12, term: 1, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Science' },
+  { id: 'shs-pr2-t1', subjectCode: 'SHS-PR2', subjectTitle: 'Practical Research 2 (Quantitative Research)', gradeLevel: 12, term: 1, track: 'Academic Track', units: 4, department: 'Research' },
+  { id: 'tvl-css-t1', subjectCode: 'TVL-CSS', subjectTitle: 'Computer Systems Servicing NC II', gradeLevel: 12, term: 1, track: 'TVL Track', strand: 'TVL - ICT (Computer Systems)', units: 6, department: 'TVL' },
+
+  { id: 'stem-phys2-t2', subjectCode: 'STEM-PHYS2', subjectTitle: 'General Physics 2', gradeLevel: 12, term: 2, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Science' },
+  { id: 'shs-mil-t2', subjectCode: 'SHS-MIL', subjectTitle: 'Media and Information Literacy', gradeLevel: 12, term: 2, track: 'Academic Track', units: 4, department: 'Languages' },
+  { id: 'stem-chem2-t2', subjectCode: 'STEM-CHEM2', subjectTitle: 'General Chemistry 2', gradeLevel: 12, term: 2, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Science' },
+
+  { id: 'stem-res2-t3', subjectCode: 'STEM-RES2', subjectTitle: 'Inquiries, Investigations & Immersion (SHS-III)', gradeLevel: 12, term: 3, track: 'Academic Track', strand: 'STEM', units: 4, department: 'Research' },
+  { id: 'shs-cpar-t3', subjectCode: 'SHS-CPAR', subjectTitle: 'Contemporary Philippine Arts from the Regions', gradeLevel: 12, term: 3, track: 'Academic Track', units: 4, department: 'Arts' },
+  { id: 'tvl-immersion-t3', subjectCode: 'TVL-IMM', subjectTitle: 'Work Immersion / Culminating Activity', gradeLevel: 12, term: 3, track: 'TVL Track', strand: 'TVL - ICT (Computer Systems)', units: 6, department: 'TVL' },
+];
+
 const INITIAL_TEACHERS: Teacher[] = [
   {
     id: 't-101',
@@ -111,9 +223,9 @@ const INITIAL_TEACHERS: Teacher[] = [
       strand: 'Special Science Program (STE)',
     },
     teachingLoads: [
-      { grade: 10, section: 'STE - Rutherford', subjectId: 'subj-sci10', subjectTitle: 'Advanced Chemistry & Physics' },
-      { grade: 9, section: 'Rizal', subjectId: 'subj-sci9', subjectTitle: 'Science 9 (Earth & Space)' },
-      { grade: 10, section: 'Bonifacio', subjectId: 'subj-sci10b', subjectTitle: 'Science 10 (Genetics & Matter)' }
+      { id: 'load-t1-1', grade: 10, section: 'STE - Rutherford', subjectId: 'subj-sci10-t1', subjectCode: 'SCI10-T1', subjectTitle: 'Advanced Chemistry & Physics', term: 1, room: 'Sci Lab 1', schedule: 'MWF 8:00 - 9:00 AM' },
+      { id: 'load-t1-2', grade: 9, section: 'Rizal', subjectId: 'subj-sci9-t1', subjectCode: 'SCI9-T1', subjectTitle: 'Science 9 (Living Things & Genetics)', term: 1, room: 'Rm 102', schedule: 'TTH 10:00 - 11:30 AM' },
+      { id: 'load-t1-3', grade: 10, section: 'Grade 8 - Bonifacio', subjectId: 'subj-sci8-t1', subjectCode: 'SCI8-T1', subjectTitle: 'Science 8 (Force, Motion & Energy)', term: 1, room: 'Main Bldg Rm 104', schedule: 'MWF 1:00 - 2:00 PM' }
     ]
   },
   {
@@ -130,9 +242,9 @@ const INITIAL_TEACHERS: Teacher[] = [
       strand: 'STEM',
     },
     teachingLoads: [
-      { grade: 12, section: 'STEM - Einstein', subjectId: 'stem-phys1', subjectTitle: 'General Physics 2' },
-      { grade: 11, section: 'STEM - Newton', subjectId: 'stem-precalc', subjectTitle: 'Pre-Calculus & Basic Calculus' },
-      { grade: 12, section: 'STEM - Einstein', subjectId: 'stem-res2', subjectTitle: 'Inquiries, Investigations & Immersion' }
+      { id: 'load-t2-1', grade: 12, section: 'STEM - Einstein', subjectId: 'stem-phys2-t2', subjectCode: 'STEM-PHYS2', subjectTitle: 'General Physics 2', term: 2, room: 'SHS Lab 302', schedule: 'MWF 9:00 - 10:30 AM' },
+      { id: 'load-t2-2', grade: 11, section: 'STEM - Newton', subjectId: 'stem-precalc-t1', subjectCode: 'STEM-PRECALC', subjectTitle: 'Pre-Calculus & Analytic Geometry', term: 1, room: 'Rm 301', schedule: 'TTH 8:00 - 9:30 AM' },
+      { id: 'load-t2-3', grade: 12, section: 'STEM - Einstein', subjectId: 'stem-res2-t3', subjectCode: 'STEM-RES2', subjectTitle: 'Inquiries, Investigations & Immersion (SHS-III)', term: 3, room: 'Research Hub', schedule: 'F 1:00 - 4:00 PM' }
     ]
   },
   {
@@ -149,9 +261,9 @@ const INITIAL_TEACHERS: Teacher[] = [
       strand: 'HUMSS',
     },
     teachingLoads: [
-      { grade: 11, section: 'HUMSS - Mabini', subjectId: 'hum-diass', subjectTitle: 'Disciplines & Ideas in Social Sciences' },
-      { grade: 10, section: 'STE - Rutherford', subjectId: 'subj-eng10', subjectTitle: 'English 10 (World Literature)' },
-      { grade: 12, section: 'STEM - Einstein', subjectId: 'shs-comm', subjectTitle: 'Oral Communication in Context' }
+      { id: 'load-t3-1', grade: 11, section: 'HUMSS - Mabini', subjectId: 'hum-diass-t1', subjectCode: 'HUM-DIASS', subjectTitle: 'Disciplines & Ideas in Social Sciences', term: 1, room: 'SHS Rm 204', schedule: 'MWF 10:00 - 11:00 AM' },
+      { id: 'load-t3-2', grade: 10, section: 'STE - Rutherford', subjectId: 'subj-eng10-t1', subjectCode: 'ENG10-T1', subjectTitle: 'English 10 (World Literature)', term: 1, room: 'Main Bldg Rm 201', schedule: 'TTH 1:00 - 2:30 PM' },
+      { id: 'load-t3-3', grade: 12, section: 'STEM - Einstein', subjectId: 'shs-comm-t1', subjectCode: 'SHS-COMM', subjectTitle: 'Oral Communication in Context', term: 1, room: 'SHS Rm 302', schedule: 'MWF 2:00 - 3:00 PM' }
     ]
   },
   {
@@ -168,12 +280,13 @@ const INITIAL_TEACHERS: Teacher[] = [
       strand: 'TVL - ICT (Computer Systems)',
     },
     teachingLoads: [
-      { grade: 12, section: 'TVL - Turing', subjectId: 'tvl-css', subjectTitle: 'Computer Systems Servicing NC II' },
-      { grade: 11, section: 'TVL - Turing', subjectId: 'tvl-empower', subjectTitle: 'Empowerment Technologies' },
-      { grade: 12, section: 'STEM - Einstein', subjectId: 'tvl-immersion', subjectTitle: 'Work Immersion / Culminating Activity' }
+      { id: 'load-t4-1', grade: 12, section: 'TVL - Turing', subjectId: 'tvl-css-t1', subjectCode: 'TVL-CSS', subjectTitle: 'Computer Systems Servicing NC II', term: 1, room: 'IT Lab 2', schedule: 'MWF 8:00 - 11:00 AM' },
+      { id: 'load-t4-2', grade: 11, section: 'TVL - Turing', subjectId: 'tvl-empower-t2', subjectCode: 'TVL-EMP', subjectTitle: 'Empowerment Technologies', term: 2, room: 'IT Lab 1', schedule: 'TTH 9:00 - 11:00 AM' },
+      { id: 'load-t4-3', grade: 12, section: 'STEM - Einstein', subjectId: 'tvl-immersion-t3', subjectCode: 'TVL-IMM', subjectTitle: 'Work Immersion / Culminating Activity', term: 3, room: 'Industry Placement', schedule: 'Daily 1:00 - 5:00 PM' }
     ]
   }
 ];
+
 
 const INITIAL_STUDENTS: StudentProfile[] = [
   {
@@ -760,6 +873,36 @@ class SchoolDatabaseService {
           });
         }
 
+        // Ensure curriculum subjects exist
+        if (!parsed.curriculumSubjects || !Array.isArray(parsed.curriculumSubjects) || parsed.curriculumSubjects.length === 0) {
+          parsed.curriculumSubjects = INITIAL_CURRICULUM_SUBJECTS;
+        }
+
+        // Normalize student grades to 3 terms
+        parsed.students?.forEach(st => {
+          st.grades?.forEach(g => {
+            if (g.term1 === undefined || g.term1 === null) g.term1 = g.q1 ?? null;
+            if (g.term2 === undefined || g.term2 === null) g.term2 = g.q2 ?? null;
+            if (g.term3 === undefined || g.term3 === null) g.term3 = g.q3 ?? null;
+            const finalCalc = calculateSubjectFinal(g);
+            g.finalRating = finalCalc.finalRating;
+            g.remarks = finalCalc.remarks;
+          });
+          const avgCalc = calculateGeneralAverage(st.grades || []);
+          st.generalAverage = avgCalc.generalAverage;
+          st.honors = avgCalc.honors;
+        });
+
+        // Ensure teacher teaching loads have id and term
+        parsed.teachers?.forEach(t => {
+          if (!t.teachingLoads) t.teachingLoads = [];
+          t.teachingLoads = t.teachingLoads.map((load, idx) => ({
+            ...load,
+            id: load.id || `load-${t.id}-${idx + 1}`,
+            term: load.term || 1,
+          }));
+        });
+
         return parsed;
       }
     } catch (e) {
@@ -769,6 +912,7 @@ class SchoolDatabaseService {
     const initial: DatabaseSchema = {
       students: INITIAL_STUDENTS,
       teachers: INITIAL_TEACHERS,
+      curriculumSubjects: INITIAL_CURRICULUM_SUBJECTS,
       enrollmentApplications: INITIAL_APPLICATIONS,
       updates: INITIAL_UPDATES,
       activities: INITIAL_ACTIVITIES,
@@ -943,9 +1087,11 @@ class SchoolDatabaseService {
     if (notes !== undefined) app.notes = notes;
     if (assignedSection !== undefined) app.assignedSection = assignedSection;
 
-    // If approved and not already converted to student, can optionally auto-enroll
+    // If approved and not already converted to student, auto-enroll into student database
     if (status === 'Approved' && !this.data.students.some(s => s.firstName.toLowerCase() === app.firstName.toLowerCase() && s.lastName.toLowerCase() === app.lastName.toLowerCase())) {
       const newLrn = app.lrn || `10982345${Math.floor(1000 + Math.random() * 9000)}`;
+      const targetSec = this.data.sections.find(s => s.sectionName === assignedSection);
+      
       const newStudent: StudentProfile = {
         id: `stud-${Date.now().toString().slice(-5)}`,
         lrn: newLrn,
@@ -967,8 +1113,8 @@ class SchoolDatabaseService {
         section: assignedSection || (app.targetGrade >= 11 ? `${app.targetStrand.split(' ')[0]} - Section A` : 'Section 1'),
         track: app.targetGrade >= 11 ? (app.targetStrand.includes('TVL') ? 'TVL Track' : 'Academic Track') : 'Junior High School',
         strand: app.targetStrand,
-        adviserId: 't-101',
-        adviserName: 'Mrs. Josefina M. Alcala',
+        adviserId: targetSec?.adviserId || 't-101',
+        adviserName: targetSec?.adviserName || 'Mrs. Josefina M. Alcala',
         schoolYear: '2026-2027',
         enrollmentStatus: 'Enrolled',
         grades: [],
@@ -976,11 +1122,198 @@ class SchoolDatabaseService {
         honors: null,
         attendance: DEFAULT_ATTENDANCE,
         coreValues: DEFAULT_CORE_VALUES,
-        adviserRemarks: 'Newly enrolled student. Initial credentials verified.',
+        adviserRemarks: `Newly approved & enrolled into S.Y. 2026–2027 (${assignedSection || 'General'}).`,
       };
       this.data.students.push(newStudent);
+
+      // Add to section's studentIds
+      if (targetSec && !targetSec.studentIds.includes(newStudent.id)) {
+        targetSec.studentIds.push(newStudent.id);
+      }
     }
 
+    this.persist(this.data);
+    return true;
+  }
+
+  public approveEnrollmentApplication(
+    appId: string, 
+    assignedSection: string, 
+    notes?: string, 
+    reviewerName: string = 'System Administrator'
+  ): { success: boolean; student?: StudentProfile; error?: string } {
+    const app = this.data.enrollmentApplications.find(a => a.id === appId);
+    if (!app) return { success: false, error: 'Application not found.' };
+
+    app.status = 'Approved';
+    app.assignedSection = assignedSection;
+    app.notes = notes || 'All documentary credentials verified by Office of the Registrar.';
+    app.reviewedBy = reviewerName;
+    app.reviewedDate = new Date().toISOString().split('T')[0];
+
+    // Find section
+    const sec = this.data.sections.find(s => s.sectionName === assignedSection);
+
+    // Create or locate student
+    let student = this.data.students.find(
+      s => s.firstName.toLowerCase() === app.firstName.toLowerCase() && s.lastName.toLowerCase() === app.lastName.toLowerCase()
+    );
+
+    if (!student) {
+      const newLrn = app.lrn || `10982345${Math.floor(1000 + Math.random() * 9000)}`;
+      student = {
+        id: `stud-${Date.now().toString().slice(-5)}`,
+        lrn: newLrn,
+        firstName: app.firstName,
+        middleName: app.middleName || '',
+        lastName: app.lastName,
+        extensionName: app.extensionName,
+        gender: app.gender,
+        birthDate: app.birthDate,
+        age: Math.max(12, new Date().getFullYear() - new Date(app.birthDate).getFullYear()),
+        barangay: app.addressBarangay,
+        municipality: 'Infanta',
+        province: 'Quezon',
+        contactNumber: app.contactNumber,
+        guardianName: app.guardianName,
+        guardianRelationship: 'Parent/Guardian',
+        guardianContact: app.guardianContact,
+        gradeLevel: app.targetGrade,
+        section: assignedSection,
+        track: app.targetGrade >= 11 ? (app.targetStrand.includes('TVL') ? 'TVL Track' : 'Academic Track') : 'Junior High School',
+        strand: app.targetStrand,
+        adviserId: sec?.adviserId || 't-101',
+        adviserName: sec?.adviserName || 'Mrs. Josefina M. Alcala',
+        schoolYear: '2026-2027',
+        enrollmentStatus: 'Enrolled',
+        grades: [],
+        generalAverage: null,
+        honors: null,
+        attendance: DEFAULT_ATTENDANCE,
+        coreValues: DEFAULT_CORE_VALUES,
+        adviserRemarks: `Enrollment officially approved into ${assignedSection}. S.Y. 2026–2027.`,
+      };
+      this.data.students.push(student);
+    } else {
+      student.section = assignedSection;
+      student.enrollmentStatus = 'Enrolled';
+      if (sec) {
+        student.adviserId = sec.adviserId;
+        student.adviserName = sec.adviserName;
+      }
+    }
+
+    if (sec && !sec.studentIds.includes(student.id)) {
+      sec.studentIds.push(student.id);
+    }
+
+    this.persist(this.data);
+    return { success: true, student };
+  }
+
+  public denyEnrollmentApplication(
+    appId: string, 
+    denialReason: string, 
+    reviewerName: string = 'System Administrator'
+  ): { success: boolean; error?: string } {
+    const app = this.data.enrollmentApplications.find(a => a.id === appId);
+    if (!app) return { success: false, error: 'Application not found.' };
+
+    app.status = 'Denied';
+    app.denialReason = denialReason;
+    app.notes = `Application Denied: ${denialReason}`;
+    app.reviewedBy = reviewerName;
+    app.reviewedDate = new Date().toISOString().split('T')[0];
+
+    this.persist(this.data);
+    return { success: true };
+  }
+
+  // --- Curriculum Subjects (Encoded per Year Level & Term/Semester) ---
+  public getCurriculumSubjects(grade?: GradeLevel, term?: TermSemester): CurriculumSubject[] {
+    let list = [...this.data.curriculumSubjects];
+    if (grade !== undefined) {
+      list = list.filter(s => s.gradeLevel === grade);
+    }
+    if (term !== undefined) {
+      list = list.filter(s => s.term === term);
+    }
+    return list;
+  }
+
+  public addCurriculumSubject(subject: Omit<CurriculumSubject, 'id'>): CurriculumSubject {
+    const newSubj: CurriculumSubject = {
+      ...subject,
+      id: `subj-${Date.now().toString().slice(-6)}`,
+    };
+    this.data.curriculumSubjects.push(newSubj);
+    this.persist(this.data);
+    return newSubj;
+  }
+
+  public updateCurriculumSubject(id: string, updates: Partial<CurriculumSubject>): boolean {
+    const subj = this.data.curriculumSubjects.find(s => s.id === id);
+    if (!subj) return false;
+    Object.assign(subj, updates);
+    this.persist(this.data);
+    return true;
+  }
+
+  public deleteCurriculumSubject(id: string): boolean {
+    const prevLen = this.data.curriculumSubjects.length;
+    this.data.curriculumSubjects = this.data.curriculumSubjects.filter(s => s.id !== id);
+    if (this.data.curriculumSubjects.length !== prevLen) {
+      this.persist(this.data);
+      return true;
+    }
+    return false;
+  }
+
+  public resetCurriculumToDefault(): void {
+    this.data.curriculumSubjects = [...INITIAL_CURRICULUM_SUBJECTS];
+    this.persist(this.data);
+  }
+
+  // --- Teacher Teaching Load Management ---
+  public addTeacherTeachingLoad(teacherId: string, load: Omit<TeachingLoad, 'id'>): TeachingLoad | null {
+    const teacher = this.data.teachers.find(t => t.id === teacherId);
+    if (!teacher) return null;
+
+    if (!teacher.teachingLoads) {
+      teacher.teachingLoads = [];
+    }
+
+    const newLoad: TeachingLoad = {
+      ...load,
+      id: `load-${Date.now().toString().slice(-6)}`,
+    };
+
+    teacher.teachingLoads.push(newLoad);
+    this.persist(this.data);
+    return newLoad;
+  }
+
+  public removeTeacherTeachingLoad(teacherId: string, loadId: string): boolean {
+    const teacher = this.data.teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.teachingLoads) return false;
+
+    const prevLen = teacher.teachingLoads.length;
+    teacher.teachingLoads = teacher.teachingLoads.filter(l => l.id !== loadId);
+    if (teacher.teachingLoads.length !== prevLen) {
+      this.persist(this.data);
+      return true;
+    }
+    return false;
+  }
+
+  public updateTeacherTeachingLoad(teacherId: string, loadId: string, updates: Partial<TeachingLoad>): boolean {
+    const teacher = this.data.teachers.find(t => t.id === teacherId);
+    if (!teacher || !teacher.teachingLoads) return false;
+
+    const load = teacher.teachingLoads.find(l => l.id === loadId);
+    if (!load) return false;
+
+    Object.assign(load, updates);
     this.persist(this.data);
     return true;
   }
@@ -1287,6 +1620,7 @@ class SchoolDatabaseService {
       activities: INITIAL_ACTIVITIES,
       accounts: INITIAL_ACCOUNTS,
       sections: INITIAL_SECTIONS,
+      curriculumSubjects: INITIAL_CURRICULUM_SUBJECTS,
     };
     this.persist(this.data);
   }

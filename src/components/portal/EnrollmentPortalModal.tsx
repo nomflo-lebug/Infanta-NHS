@@ -777,8 +777,10 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${
                       searchedApp.status === 'Approved'
                         ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                        : searchedApp.status === 'Requires Verification'
+                        : searchedApp.status === 'Denied' || searchedApp.status === 'Rejected'
                         ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                        : searchedApp.status === 'Requires Verification'
+                        ? 'bg-orange-100 text-orange-800 border border-orange-300'
                         : 'bg-amber-100 text-amber-800 border border-amber-300'
                     }`}>
                       {searchedApp.status}
@@ -804,13 +806,31 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
                     </div>
                     <div>
                       <span className="text-slate-500">Assigned Section:</span>
-                      <div className="font-bold text-blue-900">{searchedApp.assignedSection || 'Pending Final Evaluation'}</div>
+                      <div className="font-bold text-blue-900">
+                        {searchedApp.status === 'Approved'
+                          ? (searchedApp.assignedSection || 'Pending Section Placement')
+                          : searchedApp.status === 'Denied'
+                          ? 'Application Denied'
+                          : 'Pending Final Evaluation'}
+                      </div>
                     </div>
                   </div>
 
+                  {searchedApp.denialReason && (
+                    <div className="p-3 bg-rose-50 border border-rose-200 rounded-lg text-xs text-rose-800">
+                      <strong className="font-semibold text-rose-900">Registrar Evaluation:</strong> {searchedApp.denialReason}
+                    </div>
+                  )}
+
                   {searchedApp.notes && (
                     <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700">
-                      <strong>Registrar Notes:</strong> {searchedApp.notes}
+                      <strong>Notes:</strong> {searchedApp.notes}
+                    </div>
+                  )}
+
+                  {searchedApp.reviewedBy && (
+                    <div className="text-[11px] text-slate-400 font-mono">
+                      Evaluation finalized by {searchedApp.reviewedBy} {searchedApp.reviewedDate ? `(${searchedApp.reviewedDate})` : ''}
                     </div>
                   )}
                 </div>

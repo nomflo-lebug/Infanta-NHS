@@ -34,9 +34,44 @@ export default function App() {
     }
     const el = document.getElementById(sectionId);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const headerEl = document.querySelector('header');
+      const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 185;
+      const elementPosition = el.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = Math.max(0, elementPosition - headerHeight - 16);
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth',
+      });
     }
   };
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (window.pageYOffset < 120) {
+        setActiveSection('home');
+        return;
+      }
+      const sectionIds = ['updates', 'admissions', 'junior-high', 'senior-high', 'student-life', 'about', 'contact'];
+      const headerEl = document.querySelector('header');
+      const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 185;
+      const triggerY = window.pageYOffset + headerHeight + 50;
+
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const sec = document.getElementById(sectionIds[i]);
+        if (sec) {
+          const top = sec.getBoundingClientRect().top + window.pageYOffset;
+          if (triggerY >= top) {
+            setActiveSection(sectionIds[i]);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleOpenPortal = (role: Role = 'student_parent') => {
     setPortalRole(role);
