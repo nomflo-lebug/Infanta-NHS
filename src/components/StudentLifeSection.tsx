@@ -73,11 +73,12 @@ export const StudentLifeSection: React.FC = () => {
         {/* Media Feature Banner */}
         <div className="relative rounded-2xl overflow-hidden mb-12 shadow-lg border border-slate-200">
           <div className="grid lg:grid-cols-12 items-center bg-slate-900 text-white">
-            <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px] order-last lg:order-first">
+            <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px] order-last lg:order-first bg-slate-800">
               <img
-                src="/src/assets/images/school_student_life_1793804199202.jpg"
+                src="/assets/images/school_student_life_1793804199202.jpg"
                 alt="Infanta NHS Learner Government Council and Student Life"
-                referrerPolicy="no-referrer"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-center filter brightness-95"
               />
             </div>

@@ -23,16 +23,32 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenEnrollmentPortal,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [visitorCount, setVisitorCount] = useState<number>(() => {
+    try {
+      const stored = localStorage.getItem('inhs_v3_total_visits');
+      return stored ? parseInt(stored, 10) : 1;
+    } catch {
+      return 1;
+    }
+  });
+
+  React.useEffect(() => {
+    const handleUpdate = (e: any) => {
+      if (e.detail) setVisitorCount(e.detail);
+    };
+    window.addEventListener('inhs_visitor_count_updated', handleUpdate);
+    return () => window.removeEventListener('inhs_visitor_count_updated', handleUpdate);
+  }, []);
 
   const navItems = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About INHS' },
-    { id: 'admissions', label: 'Admissions & Enrollment' },
+    { id: 'updates', label: 'Updates & Calendar' },
+    { id: 'student-life', label: 'Student Life' },
     { id: 'junior-high', label: 'Junior High School' },
     { id: 'senior-high', label: 'Senior High School' },
-    { id: 'student-life', label: 'Student Life' },
-    { id: 'updates', label: 'Updates & Calendar' },
-    { id: 'contact', label: 'Contact Us' },
+    { id: 'admissions', label: 'Admissions & Enrollment' },
+    { id: 'about', label: 'About INHS' },
+    { id: 'contact', label: 'Contact us' },
   ];
 
   const handleNavClick = (id: string) => {
@@ -65,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="text-[10px] uppercase font-bold text-slate-400">Visits:</span>
-              <span className="font-semibold text-amber-300 font-mono">128K+</span>
+              <span className="font-semibold text-amber-300 font-mono">{visitorCount.toLocaleString()}</span>
             </button>
             <span className="text-slate-700">|</span>
             <span>School ID: <strong className="text-amber-300 font-semibold">301332</strong></span>

@@ -125,11 +125,12 @@ export const SeniorHighSection: React.FC<SeniorHighSectionProps> = ({ onNavigate
                 <span>· 100% Free Tuition</span>
               </div>
             </div>
-            <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px]">
+            <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px] bg-slate-800">
               <img
-                src="/src/assets/images/classroom_stem_laboratory_1793804197413.jpg"
+                src="/assets/images/classroom_stem_laboratory_1793804197413.jpg"
                 alt="Infanta NHS STEM Science Laboratory"
-                referrerPolicy="no-referrer"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-center filter brightness-95"
               />
             </div>

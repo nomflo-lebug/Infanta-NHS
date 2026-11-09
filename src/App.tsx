@@ -52,7 +52,7 @@ export default function App() {
         setActiveSection('home');
         return;
       }
-      const sectionIds = ['updates', 'admissions', 'junior-high', 'senior-high', 'student-life', 'about', 'contact'];
+      const sectionIds = ['updates', 'student-life', 'junior-high', 'senior-high', 'admissions', 'about', 'contact'];
       const headerEl = document.querySelector('header');
       const headerHeight = headerEl ? headerEl.getBoundingClientRect().height : 185;
       const triggerY = window.pageYOffset + headerHeight + 50;
@@ -95,35 +95,35 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1">
-        {/* Hero Section with Campus Facade & Mission */}
+        {/* 1. Hero Section with Campus Facade & Mission (Home) */}
         <HeroSection
           onNavigate={handleNavigate}
           onOpenPortal={handleOpenPortal}
           onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
         />
 
-        {/* School Updates & Activities Bulletin */}
+        {/* 2. School Updates & Activities Bulletin (Updates & Calendar) */}
         <SchoolUpdatesSection />
 
-        {/* Admissions & Online Enrollment Guide */}
+        {/* 3. Student Life & Organizations (Student Life) */}
+        <StudentLifeSection />
+
+        {/* 4. Junior High School (Grades 7 to 10 + STE) */}
+        <JuniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
+
+        {/* 5. Senior High School (Academic & TVL Strands + Labs) */}
+        <SeniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
+
+        {/* 6. Admissions & Online Enrollment Guide (Admissions & Enrollment) */}
         <AdmissionsSection 
           onOpenPortal={handleOpenPortal}
           onOpenEnrollmentPortal={handleOpenEnrollmentPortal}
         />
 
-        {/* Junior High School (Grades 7 to 10 + STE) */}
-        <JuniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
-
-        {/* Senior High School (Academic & TVL Strands + Labs) */}
-        <SeniorHighSection onNavigateToEnroll={() => handleOpenEnrollmentPortal('enroll')} />
-
-        {/* Student Life & Organizations (SSLG, Journalism, Clubs) */}
-        <StudentLifeSection />
-
-        {/* About Infanta National High School (History, VMV, Admin) */}
+        {/* 7. About Infanta National High School (About INHS) */}
         <AboutSection />
 
-        {/* Contact & Public Assistance Desk */}
+        {/* 8. Contact & Public Assistance Desk (Contact us) */}
         <ContactSection />
       </main>
 

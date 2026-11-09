@@ -150,14 +150,11 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
         {/* Portal Header */}
         <div className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-950 text-white px-5 py-4 border-b border-blue-900/50 flex items-center justify-between shadow-md shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/10 p-1 flex items-center justify-center border border-white/20">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-white/10 flex items-center justify-center border border-white/20">
               <img
-                src="/assets/images/logo_cropped.png"
+                src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
                 alt="INHS Crest"
-                className="w-10 h-10 object-contain drop-shadow"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
+                className="w-full h-full object-cover scale-105 rounded-full drop-shadow"
               />
             </div>
             <div>

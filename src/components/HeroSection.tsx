@@ -25,11 +25,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   return (
     <section className="relative overflow-hidden bg-slate-900 text-white">
       {/* Background Campus Facade with Scrim */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute inset-0 z-0 bg-slate-950">
         <img
-          src="/src/assets/images/school_campus_facade_1793804196290.jpg"
+          src="/assets/images/school_campus_facade_1793804196290.jpg"
           alt="Infanta National High School Campus"
-          referrerPolicy="no-referrer"
+          loading="eager"
+          decoding="async"
           className="w-full h-full object-cover object-center scale-105 filter brightness-75 contrast-105"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-blue-950/60" />
@@ -49,9 +50,9 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
               <span className="text-xs sm:text-sm font-semibold tracking-wider uppercase text-amber-400">
                 Honor · Excellence · Service
               </span>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold font-crest tracking-tight leading-tight text-white drop-shadow-xs">
+              <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold font-crest tracking-tight leading-tight text-white drop-shadow-xs">
                 Infanta National High School
-              </h1>
+              </h2>
               <p className="text-base sm:text-lg text-slate-300 max-w-2xl leading-relaxed">
                 A premier public secondary institution in Northern Quezon, dedicated to fostering scientific inquiry, academic competence, technical-vocational mastery, and values-centered citizenship.
               </p>
