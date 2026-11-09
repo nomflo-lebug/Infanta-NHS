@@ -8,6 +8,7 @@ import {
   ChevronRight,
   FileCheck2
 } from 'lucide-react';
+import { APP_ASSETS } from '../assets';
 
 interface HeaderProps {
   activeSection: string;
@@ -25,7 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number>(() => {
     try {
-      const stored = localStorage.getItem('inhs_v3_total_visits');
+      const stored = localStorage.getItem('inhs_v6_total_visits');
       return stored ? parseInt(stored, 10) : 1;
     } catch {
       return 1;
@@ -101,10 +102,13 @@ export const Header: React.FC<HeaderProps> = ({
             className="flex items-center gap-4 sm:gap-5 text-left group focus-visible:outline-hidden flex-1 min-w-0"
           >
             {/* Official School Logo (Cropped with circle to remove visible border edges, rendered large) */}
-            <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-sm">
+            <div className="relative w-20 h-20 sm:w-28 sm:h-28 lg:w-32 lg:h-32 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-sm bg-blue-900">
               <img 
-                src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png" 
+                src={APP_ASSETS.logo} 
                 alt="Infanta National High School Official Seal" 
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = APP_ASSETS.publicLogo;
+                }}
                 className="w-full h-full object-cover scale-[1.04] rounded-full transition-transform group-hover:scale-110 duration-200"
               />
             </div>

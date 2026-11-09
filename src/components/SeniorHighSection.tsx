@@ -12,6 +12,7 @@ import {
   ArrowRight,
   ExternalLink
 } from 'lucide-react';
+import { APP_ASSETS } from '../assets';
 
 interface SeniorHighSectionProps {
   onNavigateToEnroll: () => void;
@@ -127,10 +128,13 @@ export const SeniorHighSection: React.FC<SeniorHighSectionProps> = ({ onNavigate
             </div>
             <div className="lg:col-span-5 h-64 lg:h-full min-h-[280px] bg-slate-800">
               <img
-                src="/assets/images/classroom_stem_laboratory_1793804197413.jpg"
+                src={APP_ASSETS.scienceLab}
                 alt="Infanta NHS STEM Science Laboratory"
                 loading="lazy"
                 decoding="async"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = APP_ASSETS.publicScienceLab;
+                }}
                 className="w-full h-full object-cover object-center filter brightness-95"
               />
             </div>

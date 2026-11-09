@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   ArrowRight, 
   GraduationCap, 
@@ -10,6 +10,7 @@ import {
   Sparkles,
   BookOpenCheck
 } from 'lucide-react';
+import { APP_ASSETS } from '../assets';
 
 interface HeroSectionProps {
   onNavigate: (sectionId: string) => void;
@@ -22,18 +23,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onOpenPortal,
   onOpenEnrollmentPortal,
 }) => {
+  const [imgSrc, setImgSrc] = useState(APP_ASSETS.campusFacade);
+  const [imgFailed, setImgFailed] = useState(false);
+
   return (
-    <section className="relative overflow-hidden bg-slate-900 text-white">
-      {/* Background Campus Facade with Scrim */}
-      <div className="absolute inset-0 z-0 bg-slate-950">
-        <img
-          src="/assets/images/school_campus_facade_1793804196290.jpg"
-          alt="Infanta National High School Campus"
-          loading="eager"
-          decoding="async"
-          className="w-full h-full object-cover object-center scale-105 filter brightness-75 contrast-105"
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-blue-950/60" />
+    <section id="home" className="relative overflow-hidden bg-slate-900 text-white min-h-[580px] flex items-center">
+      {/* Background Campus Facade with Scrim & Deep Gradient Base */}
+      <div className="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900">
+        {!imgFailed && (
+          <img
+            src={imgSrc}
+            alt="Infanta National High School Campus"
+            loading="eager"
+            decoding="async"
+            onError={() => {
+              if (imgSrc !== APP_ASSETS.publicCampusFacade) {
+                setImgSrc(APP_ASSETS.publicCampusFacade);
+              } else {
+                setImgFailed(true);
+              }
+            }}
+            className="w-full h-full object-cover object-center scale-105 filter brightness-75 contrast-105 transition-opacity duration-500"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-blue-950/70" />
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 py-16 lg:py-24">

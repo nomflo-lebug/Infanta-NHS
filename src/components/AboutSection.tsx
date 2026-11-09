@@ -14,6 +14,7 @@ import {
   Activity,
   Check
 } from 'lucide-react';
+import { APP_ASSETS } from '../assets';
 
 export const AboutSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'vmv' | 'admin' | 'facilities'>('overview');
@@ -140,10 +141,13 @@ export const AboutSection: React.FC = () => {
 
             <div className="lg:col-span-5 bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950 text-white rounded-xl p-6 sm:p-8 shadow-xl space-y-6">
               <div className="flex items-center gap-4 border-b border-slate-800 pb-4">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-md">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 shrink-0 rounded-full overflow-hidden flex items-center justify-center shadow-md bg-blue-900">
                   <img
-                    src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
+                    src={APP_ASSETS.logo}
                     alt="Official Infanta National High School Emblem"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = APP_ASSETS.publicLogo;
+                    }}
                     className="w-full h-full object-cover scale-[1.04] rounded-full"
                   />
                 </div>

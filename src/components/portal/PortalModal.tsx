@@ -43,6 +43,7 @@ import { GoogleDriveBackupManager } from './GoogleDriveBackupManager';
 import { AdminCurriculumManager } from './AdminCurriculumManager';
 import { AdminEnrollmentApplicationsManager } from './AdminEnrollmentApplicationsManager';
 import { TeacherLoadsManager } from './TeacherLoadsManager';
+import { APP_ASSETS } from '../../assets';
 
 interface PortalModalProps {
   isOpen: boolean;
@@ -290,10 +291,13 @@ export const PortalModal: React.FC<PortalModalProps> = ({
         {/* Top Header of Portal */}
         <div className="bg-slate-900 text-white px-5 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden flex items-center justify-center">
+            <div className="w-12 h-12 shrink-0 rounded-full overflow-hidden flex items-center justify-center bg-blue-900">
               <img 
-                src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png" 
+                src={APP_ASSETS.logo} 
                 alt="Infanta NHS Logo"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = APP_ASSETS.publicLogo;
+                }}
                 className="w-full h-full object-cover scale-[1.04] rounded-full"
               />
             </div>
@@ -604,10 +608,13 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                       {/* Interactive Header with Print Action (button hidden on print) */}
                       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3 print:pb-2">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full overflow-hidden flex items-center justify-center border border-slate-200">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 bg-blue-900">
                             <img
-                              src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
+                              src={APP_ASSETS.logo}
                               alt="INHS Official Seal"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = APP_ASSETS.publicLogo;
+                              }}
                               className="w-full h-full object-cover scale-[1.04] rounded-full"
                             />
                           </div>
