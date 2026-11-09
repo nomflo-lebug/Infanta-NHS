@@ -21,7 +21,7 @@ import {
   TermSemester
 } from '../types/school';
 
-const DB_KEY = 'inhs_school_database_v3';
+const DB_KEY = 'inhs_school_database_v5';
 
 interface DatabaseSchema {
   students: StudentProfile[];
@@ -822,7 +822,11 @@ class SchoolDatabaseService {
 
   private loadFromStorage(): DatabaseSchema {
     try {
-      const stored = localStorage.getItem(DB_KEY) || localStorage.getItem('inhs_school_database_v1');
+      const stored = 
+        localStorage.getItem(DB_KEY) || 
+        localStorage.getItem('inhs_school_database_v4') ||
+        localStorage.getItem('inhs_school_database_v3') || 
+        localStorage.getItem('inhs_school_database_v1');
       if (stored) {
         const parsed: DatabaseSchema = JSON.parse(stored);
         
@@ -873,9 +877,20 @@ class SchoolDatabaseService {
           });
         }
 
-        // Ensure curriculum subjects exist
+        // Ensure curriculum subjects exist and merge with all default offerings
         if (!parsed.curriculumSubjects || !Array.isArray(parsed.curriculumSubjects) || parsed.curriculumSubjects.length === 0) {
           parsed.curriculumSubjects = INITIAL_CURRICULUM_SUBJECTS;
+        } else {
+          INITIAL_CURRICULUM_SUBJECTS.forEach(initSub => {
+            if (!parsed.curriculumSubjects.some(s => s.id === initSub.id)) {
+              parsed.curriculumSubjects.push(initSub);
+            }
+          });
+        }
+
+        // Ensure enrollment applications exist
+        if (!parsed.enrollmentApplications || !Array.isArray(parsed.enrollmentApplications) || parsed.enrollmentApplications.length === 0) {
+          parsed.enrollmentApplications = INITIAL_APPLICATIONS;
         }
 
         // Normalize student grades to 3 terms
@@ -903,6 +918,7 @@ class SchoolDatabaseService {
           }));
         });
 
+        this.persist(parsed);
         return parsed;
       }
     } catch (e) {
