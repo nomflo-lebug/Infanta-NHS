@@ -24,7 +24,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { schoolDb } from '../../services/schoolDatabase';
-import { GradeLevel, StrandType, EnrollmentApplication } from '../../types/school';
+import { GradeLevel, StrandType, EnrollmentApplication, INFANTA_BARANGAYS } from '../../types/school';
 
 interface EnrollmentPortalModalProps {
   isOpen: boolean;
@@ -40,7 +40,7 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
   const [activeTab, setActiveTab] = useState<'enroll' | 'status' | 'guidelines'>(initialTab);
 
   // Form states
-  const [appType, setAppType] = useState<EnrollmentApplication['applicationType']>('Grade 7 (Incoming JHS)');
+  const [appType, setAppType] = useState<EnrollmentApplication['applicationType']>('Incoming JHS');
   const [lrn, setLrn] = useState('');
   const [firstName, setFirstName] = useState('');
   const [middleName, setMiddleName] = useState('');
@@ -376,18 +376,18 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
                           onChange={(e) => {
                             const val = e.target.value as any;
                             setAppType(val);
-                            if (val.includes('Grade 7')) {
+                            if (val === 'Incoming JHS' || val.includes('JHS')) {
                               setTargetGrade(7);
                               setTargetStrand('Regular JHS');
-                            } else if (val.includes('Grade 11')) {
+                            } else if (val === 'Incoming SHS' || val.includes('SHS')) {
                               setTargetGrade(11);
                               setTargetStrand('STEM');
                             }
                           }}
                           className="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-white font-medium"
                         >
-                          <option value="Grade 7 (Incoming JHS)">Grade 7 (Incoming JHS)</option>
-                          <option value="Grade 11 (Incoming SHS)">Grade 11 (Incoming SHS)</option>
+                          <option value="Incoming JHS">Incoming JHS</option>
+                          <option value="Incoming SHS">Incoming SHS</option>
                           <option value="Transferee">Transferee from another school</option>
                           <option value="Balik-Aral">Balik-Aral (Returning Learner)</option>
                         </select>
@@ -554,25 +554,17 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
                       </div>
 
                       <div>
-                        <label className="block text-xs font-semibold text-slate-700 mb-1">Residential Barangay *</label>
+                        <label className="block text-xs font-semibold text-slate-700 mb-1">Residential Barangay (Infanta, Quezon) *</label>
                         <select
                           value={addressBarangay}
                           onChange={(e) => setAddressBarangay(e.target.value)}
                           className="w-full text-xs p-2.5 rounded-lg border border-slate-300 bg-white"
                         >
-                          <option value="Barangay Poblacion 38">Barangay Poblacion 38</option>
-                          <option value="Barangay Poblacion 39">Barangay Poblacion 39</option>
-                          <option value="Barangay Poblacion 1">Barangay Poblacion 1</option>
-                          <option value="Barangay Banugao">Barangay Banugao</option>
-                          <option value="Barangay Antikin">Barangay Antikin</option>
-                          <option value="Barangay Catambungan">Barangay Catambungan</option>
-                          <option value="Barangay Comon">Barangay Comon</option>
-                          <option value="Barangay Dinahican">Barangay Dinahican</option>
-                          <option value="Barangay Libjo">Barangay Libjo</option>
-                          <option value="Barangay Miswa">Barangay Miswa</option>
-                          <option value="Barangay Pilaway">Barangay Pilaway</option>
-                          <option value="Barangay Tongohin">Barangay Tongohin</option>
-                          <option value="Other Quezon Municipality">Other Quezon Municipality</option>
+                          {INFANTA_BARANGAYS.map((b) => (
+                            <option key={b} value={b}>
+                              {b}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -857,7 +849,7 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
 
                 <div className="space-y-4 text-xs text-slate-600 leading-relaxed">
                   <div>
-                    <h5 className="font-bold text-slate-900 text-sm mb-1">Incoming Grade 7 (Junior High)</h5>
+                    <h5 className="font-bold text-slate-900 text-sm mb-1">Incoming JHS (Junior High School)</h5>
                     <p>Elementary school completers from public and private elementary schools are eligible. Must submit Form 138 (Elementary Report Card) with a passing general average.</p>
                   </div>
 
@@ -867,7 +859,7 @@ export const EnrollmentPortalModal: React.FC<EnrollmentPortalModalProps> = ({
                   </div>
 
                   <div>
-                    <h5 className="font-bold text-slate-900 text-sm mb-1">Incoming Grade 11 (Senior High)</h5>
+                    <h5 className="font-bold text-slate-900 text-sm mb-1">Incoming SHS (Senior High School)</h5>
                     <p>Open to Grade 10 completers and PEPT / ALS qualifiers. Students can choose from Academic (STEM, ABM, HUMSS) and TVL (ICT, Home Economics, Electrical EIM, EPAS). Qualified public JHS completers receive 100% free tuition and voucher assistance.</p>
                   </div>
 

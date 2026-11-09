@@ -137,10 +137,52 @@ export interface CurriculumSubject {
   description?: string;
 }
 
+export const INFANTA_BARANGAYS = [
+  'Barangay Abiawin',
+  'Barangay Agos-agos',
+  'Barangay Alitas',
+  'Barangay Amolongin',
+  'Barangay Anibong',
+  'Barangay Antikin',
+  'Barangay Bacong',
+  'Barangay Balobo',
+  'Barangay Bantilan',
+  'Barangay Banugao',
+  'Barangay Batican',
+  'Barangay Binonoan',
+  'Barangay Binulasan',
+  'Barangay Boboin',
+  'Barangay Catambungan',
+  'Barangay Cawaynin',
+  'Barangay Comon',
+  'Barangay Dinahican',
+  'Barangay Gumian',
+  'Barangay Ilog',
+  'Barangay Ingas',
+  'Barangay Langgas',
+  'Barangay Libjo',
+  'Barangay Lual',
+  'Barangay Magsaysay',
+  'Barangay Maypulot',
+  'Barangay Miswa',
+  'Barangay Pilaway',
+  'Barangay Pinaglapatan',
+  'Barangay Poblacion 1',
+  'Barangay Poblacion 38',
+  'Barangay Poblacion 39',
+  'Barangay Pulo',
+  'Barangay Silangan',
+  'Barangay Tongohin',
+  'Barangay Tudturan',
+  'Other / Outside Infanta (Transferee)',
+] as const;
+
+export type InfantaBarangay = typeof INFANTA_BARANGAYS[number];
+
 export interface EnrollmentApplication {
   id: string;
   submissionDate: string;
-  applicationType: 'Grade 7 (Incoming JHS)' | 'Grade 11 (Incoming SHS)' | 'Transferee' | 'Balik-Aral';
+  applicationType: 'Incoming JHS' | 'Incoming SHS' | 'Grade 7 (Incoming JHS)' | 'Grade 11 (Incoming SHS)' | 'Transferee' | 'Balik-Aral';
   lrn?: string;
   firstName: string;
   middleName: string;

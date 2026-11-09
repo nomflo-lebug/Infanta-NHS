@@ -27,7 +27,8 @@ import {
   SchoolClassSection, 
   Teacher, 
   GradeLevel, 
-  StrandType 
+  StrandType,
+  INFANTA_BARANGAYS 
 } from '../../types/school';
 
 interface TeacherAdvisoryManagerProps {
@@ -726,13 +727,17 @@ export const TeacherAdvisoryManager: React.FC<TeacherAdvisoryManagerProps> = ({
                   </div>
                   <div>
                     <label className="block font-semibold text-slate-700 mb-1">Barangay (Infanta, Quezon)</label>
-                    <input
-                      type="text"
+                    <select
                       value={newBarangay}
                       onChange={(e) => setNewBarangay(e.target.value)}
-                      placeholder="e.g. Barangay Poblacion 38"
-                      className="w-full p-2 rounded-lg border border-slate-300"
-                    />
+                      className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                    >
+                      {INFANTA_BARANGAYS.map((b) => (
+                        <option key={b} value={b}>
+                          {b}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
@@ -950,12 +955,17 @@ export const TeacherAdvisoryManager: React.FC<TeacherAdvisoryManagerProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Barangay (Infanta)</label>
-                  <input
-                    type="text"
+                  <select
                     value={editBarangay}
                     onChange={(e) => setEditBarangay(e.target.value)}
-                    className="w-full p-2 rounded-lg border border-slate-300"
-                  />
+                    className="w-full p-2 rounded-lg border border-slate-300 bg-white"
+                  >
+                    {INFANTA_BARANGAYS.map((b) => (
+                      <option key={b} value={b}>
+                        {b}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block font-semibold text-slate-700 mb-1">Learner Contact Number</label>

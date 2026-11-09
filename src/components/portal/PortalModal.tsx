@@ -21,7 +21,8 @@ import {
   LogOut,
   Building2,
   Users,
-  Key
+  Key,
+  HelpCircle
 } from 'lucide-react';
 import { schoolDb, calculateSubjectFinal, calculateGeneralAverage } from '../../services/schoolDatabase';
 import { 
@@ -91,6 +92,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
   // Student Portal State
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [searchLrn, setSearchLrn] = useState<string>('');
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [studentTab, setStudentTab] = useState<'sf9' | 'profile' | 'core_values' | 'attendance'>('sf9');
   
   // Teacher Portal State
@@ -121,24 +123,23 @@ export const PortalModal: React.FC<PortalModalProps> = ({
       setStudents(allStudents);
       setTeachers(allTeachers);
       setApplications(allApps);
-
-      if (!selectedStudentId && allStudents.length > 0) {
-        setSelectedStudentId(allStudents[0].id);
-      }
     };
 
     sync();
     const unsub = schoolDb.subscribe(sync);
     return () => unsub();
-  }, [selectedStudentId]);
+  }, []);
 
-  // Sync initial role when modal opens
+  // Sync initial role when modal opens & reset student view for privacy
   useEffect(() => {
     if (initialRole) setRole(initialRole);
+    setSelectedStudentId('');
+    setSearchLrn('');
+    setSearchError(null);
   }, [initialRole, isOpen]);
 
-  // Current selected student
-  const currentStudent = students.find(s => s.id === selectedStudentId) || students[0];
+  // Current selected student (null by default so NO student information is exposed initially)
+  const currentStudent = selectedStudentId ? students.find(s => s.id === selectedStudentId) || null : null;
 
   // Current selected teacher
   const currentTeacher = teachers.find(t => t.id === selectedTeacherId) || teachers[0];
@@ -175,12 +176,25 @@ export const PortalModal: React.FC<PortalModalProps> = ({
   // Student LRN Search
   const handleStudentSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const found = schoolDb.getStudentByLrn(searchLrn);
+    setSearchError(null);
+    const clean = searchLrn.trim();
+    if (!clean) {
+      setSearchError('Please enter a 12-digit Learner Reference Number (LRN).');
+      return;
+    }
+    const found = schoolDb.getStudentByLrn(clean);
     if (found) {
       setSelectedStudentId(found.id);
+      setSearchError(null);
     } else {
-      alert(`No student profile found with LRN: ${searchLrn}`);
+      setSearchError(`No enrolled learner profile was found with LRN: "${clean}". Please verify the 12-digit LRN on your Form 138/SF9 or consult your Class Adviser.`);
     }
+  };
+
+  const handleClearStudent = () => {
+    setSelectedStudentId('');
+    setSearchLrn('');
+    setSearchError(null);
   };
 
   // Teacher Grade Save (3 Terms)
@@ -396,49 +410,112 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                 </div>
               )}
 
-              {/* Student Selector Bar & LRN Search */}
-              <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                    Select Enrolled Learner:
-                  </span>
-                  <select
-                    value={selectedStudentId}
-                    onChange={(e) => setSelectedStudentId(e.target.value)}
-                    className="text-xs sm:text-sm font-semibold p-2 rounded-lg border border-slate-300 bg-white text-blue-950 focus:border-blue-900 focus:outline-hidden"
-                  >
-                    {students.map((st) => (
-                      <option key={st.id} value={st.id}>
-                        {st.lastName}, {st.firstName} — Grade {st.gradeLevel} ({st.section})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <form onSubmit={handleStudentSearch} className="flex items-center gap-2">
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Find by 12-digit LRN..."
-                      value={searchLrn}
-                      onChange={(e) => setSearchLrn(e.target.value)}
-                      className="text-xs p-2 pl-7 rounded-lg border border-slate-300 w-44 font-mono-num focus:border-blue-900 focus:outline-hidden"
-                    />
-                    <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" />
+              {/* IF NO STUDENT IS SELECTED YET: Display Secure LRN Verification Screen */}
+              {!currentStudent ? (
+                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-10 shadow-sm max-w-2xl mx-auto text-center space-y-6 animate-fade-in">
+                  <div className="w-16 h-16 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center mx-auto text-blue-900 shadow-xs">
+                    <ShieldCheck className="w-8 h-8" />
                   </div>
-                  <button
-                    type="submit"
-                    className="px-3 py-2 bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold rounded-lg cursor-pointer"
-                  >
-                    Verify
-                  </button>
-                </form>
-              </div>
 
-              {currentStudent ? (
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100 text-blue-900 text-xs font-bold uppercase tracking-wider">
+                      <GraduationCap className="w-3.5 h-3.5" />
+                      <span>DepEd Learner Information System (LIS)</span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-bold font-crest text-slate-900">
+                      Student & Parent Academic Portal
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                      To protect learner privacy in accordance with <strong>Republic Act No. 10173 (Data Privacy Act of 2012)</strong>, individual student records, SF9 quarterly progress cards, and attendance are protected. Please enter the student's 12-digit Learner Reference Number (LRN) to securely access academic records.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleStudentSearch} className="max-w-md mx-auto space-y-3">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        maxLength={12}
+                        placeholder="Enter 12-Digit LRN (e.g. 109823450012)"
+                        value={searchLrn}
+                        onChange={(e) => setSearchLrn(e.target.value.replace(/\D/g, ''))}
+                        className="w-full py-3 px-4 pl-11 text-base font-mono-num font-bold text-center tracking-wider text-slate-900 rounded-xl border-2 border-slate-300 focus:border-blue-900 focus:outline-hidden transition-all shadow-inner"
+                      />
+                      <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="w-full py-3 px-6 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <UserCheck className="w-4 h-4 text-amber-300" />
+                      <span>Verify & Access Student Record</span>
+                    </button>
+                  </form>
+
+                  {searchError && (
+                    <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs text-left flex items-start gap-2.5 animate-shake">
+                      <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
+                      <div className="leading-relaxed">
+                        <strong>Verification Notice:</strong> {searchError}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-slate-100 text-xs text-slate-500 space-y-2">
+                    <div className="flex items-center justify-center gap-1.5 text-slate-400 text-xs font-semibold">
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>Where to find your LRN?</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 max-w-md mx-auto">
+                      The Learner Reference Number (LRN) is a permanent 12-digit number issued by DepEd, found on your Form 138 (Report Card), Certificate of Good Moral, or enrollment confirmation slip.
+                    </p>
+                    <div className="pt-2 flex flex-wrap items-center justify-center gap-1.5">
+                      <span className="text-[10px] text-slate-400 font-semibold uppercase">Sample LRNs for Testing:</span>
+                      {students.slice(0, 3).map((s) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => {
+                            setSearchLrn(s.lrn);
+                            setSelectedStudentId(s.id);
+                            setSearchError(null);
+                          }}
+                          className="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[11px] border border-slate-200 transition-colors cursor-pointer"
+                        >
+                          {s.lrn} ({s.firstName})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : (
                 <>
+                  {/* Verified Student Header with Exit Action */}
+                  <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-bold text-sm shrink-0">
+                        {currentStudent.firstName[0]}{currentStudent.lastName[0]}
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-slate-400">Currently Verified Learner</div>
+                        <div className="text-sm font-bold text-slate-900">
+                          {currentStudent.lastName}, {currentStudent.firstName} {currentStudent.middleName} · LRN: <span className="font-mono text-blue-900">{currentStudent.lrn}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleClearStudent}
+                      className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      title="Clear learner and return to verification screen"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Change / Look Up Another Student</span>
+                    </button>
+                  </div>
+
                   {/* Student Summary Identification Header */}
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4">
+                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-4 no-print">
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-full bg-blue-900 text-amber-300 flex items-center justify-center font-crest font-bold text-lg shadow-sm shrink-0">
                         {currentStudent.firstName[0]}{currentStudent.lastName[0]}
@@ -478,7 +555,7 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                   </div>
 
                   {/* Navigation sub-tabs */}
-                  <div className="flex border-b border-slate-200 gap-2 pb-px">
+                  <div className="flex border-b border-slate-200 gap-2 pb-px no-print">
                     <button
                       onClick={() => setStudentTab('sf9')}
                       className={`px-4 py-2 text-xs font-semibold rounded-t-lg transition-colors cursor-pointer ${
@@ -521,12 +598,13 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     </button>
                   </div>
 
-                  {/* Tab 1: DepEd SF9 Report Card Table */}
+                  {/* Tab 1: DepEd SF9 Report Card Table (Optimized for Single-Page A4 Printing) */}
                   {studentTab === 'sf9' && (
-                    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-xs space-y-4">
-                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
-                        <div className="flex items-center gap-3.5">
-                          <div className="w-16 h-16 shrink-0 rounded-full overflow-hidden flex items-center justify-center">
+                    <div id="printable-sf9-document" className="bg-white rounded-xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-3 print:border-none print:shadow-none print:p-0">
+                      {/* Interactive Header with Print Action (button hidden on print) */}
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3 print:pb-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-full overflow-hidden flex items-center justify-center border border-slate-200">
                             <img
                               src="/assets/aistudio/INHS_LOGO_v2_3c57a62d.png"
                               alt="INHS Official Seal"
@@ -534,59 +612,85 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                             />
                           </div>
                           <div>
-                            <div className="text-[11px] uppercase font-bold text-blue-900 tracking-wider">
-                              DepEd School Form 9 (SF9) · Infanta National High School
+                            <div className="text-[10px] sm:text-[11px] uppercase font-bold text-blue-950 tracking-wider">
+                              Republic of the Philippines · Department of Education
                             </div>
-                            <h4 className="text-base font-bold text-slate-900">
-                              Report on Learner Progress and Achievement
+                            <div className="text-[10px] text-slate-500 font-medium">
+                              Region IV-A CALABARZON · Division of Quezon · District of Infanta
+                            </div>
+                            <h4 className="text-sm sm:text-base font-extrabold font-crest text-slate-900 leading-tight">
+                              Infanta National High School
                             </h4>
+                            <div className="text-[10px] font-mono text-slate-600">
+                              School ID: 301332 · Progress Report Card (School Form 9 - SF9) · S.Y. 2026–2027
+                            </div>
                           </div>
                         </div>
 
                         <button
                           onClick={() => window.print()}
-                          className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer"
+                          className="no-print px-3.5 py-2 bg-blue-900 hover:bg-blue-800 active:bg-blue-950 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                         >
-                          <Printer className="w-3.5 h-3.5" />
-                          <span>Print Official SF9</span>
+                          <Printer className="w-3.5 h-3.5 text-amber-300" />
+                          <span>Print SF9 (A4 Single Page)</span>
                         </button>
+                      </div>
+
+                      {/* Learner Demographics Strip for Official SF9 Document */}
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-[11px] print:bg-white print:border-slate-300">
+                        <div>
+                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Learner Name:</span>
+                          <span className="font-bold text-slate-900">{currentStudent.lastName}, {currentStudent.firstName} {currentStudent.middleName || ''}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block text-[10px] uppercase font-bold">LRN:</span>
+                          <span className="font-bold font-mono text-blue-900">{currentStudent.lrn}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Grade & Section:</span>
+                          <span className="font-bold text-slate-900">Grade {currentStudent.gradeLevel} - {currentStudent.section}</span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 block text-[10px] uppercase font-bold">Class Adviser:</span>
+                          <span className="font-bold text-slate-900">{currentStudent.adviserName}</span>
+                        </div>
                       </div>
 
                       {/* Grades Table (3 Terms / Semesters Per School Year) */}
                       <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs border border-slate-200">
-                          <thead className="bg-slate-100 text-slate-800 uppercase tracking-wider font-semibold">
+                        <table className="w-full text-left text-[11px] sm:text-xs border border-slate-300">
+                          <thead className="bg-slate-100 text-slate-900 uppercase tracking-wider font-bold text-[10px] sm:text-[11px]">
                             <tr>
-                              <th className="p-3 border-b border-slate-200">Learning Areas / Subjects</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 1</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 2</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-20">Term 3</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-24">Final Rating</th>
-                              <th className="p-3 border-b border-slate-200 text-center w-24">Remarks</th>
+                              <th className="p-2 border-b border-slate-300">Learning Areas / Subjects</th>
+                              <th className="p-2 border-b border-slate-300 text-center w-16">Term 1</th>
+                              <th className="p-2 border-b border-slate-300 text-center w-16">Term 2</th>
+                              <th className="p-2 border-b border-slate-300 text-center w-16">Term 3</th>
+                              <th className="p-2 border-b border-slate-300 text-center w-20">Final Rating</th>
+                              <th className="p-2 border-b border-slate-300 text-center w-20">Remarks</th>
                             </tr>
                           </thead>
                           <tbody className="divide-y divide-slate-200">
                             {currentStudent.grades.map((grade) => (
-                              <tr key={grade.subjectId} className="hover:bg-slate-50 transition-colors">
-                                <td className="p-3">
-                                  <div className="font-semibold text-slate-900">{grade.subjectTitle}</div>
-                                  <div className="text-[11px] text-slate-500">{grade.teacherName}</div>
+                              <tr key={grade.subjectId} className="hover:bg-slate-50">
+                                <td className="p-1.5 sm:p-2">
+                                  <div className="font-semibold text-slate-900 leading-tight">{grade.subjectTitle}</div>
+                                  <div className="text-[10px] text-slate-500 print:hidden">{grade.teacherName}</div>
                                 </td>
-                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term1 ?? grade.q1 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term2 ?? grade.q2 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num font-semibold">{grade.term3 ?? grade.q3 ?? '—'}</td>
-                                <td className="p-3 text-center font-mono-num font-bold text-slate-900 text-sm">
+                                <td className="p-1.5 sm:p-2 text-center font-mono-num font-semibold">{grade.term1 ?? grade.q1 ?? '—'}</td>
+                                <td className="p-1.5 sm:p-2 text-center font-mono-num font-semibold">{grade.term2 ?? grade.q2 ?? '—'}</td>
+                                <td className="p-1.5 sm:p-2 text-center font-mono-num font-semibold">{grade.term3 ?? grade.q3 ?? '—'}</td>
+                                <td className="p-1.5 sm:p-2 text-center font-mono-num font-bold text-slate-900">
                                   {grade.finalRating ?? '—'}
                                 </td>
-                                <td className="p-3 text-center">
-                                  <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${
+                                <td className="p-1.5 sm:p-2 text-center">
+                                  <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
                                     grade.remarks === 'Passed' 
-                                      ? 'bg-emerald-100 text-emerald-800' 
+                                      ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' 
                                       : grade.remarks === 'Failed' 
-                                      ? 'bg-rose-100 text-rose-800'
+                                      ? 'bg-rose-100 text-rose-800 border border-rose-300'
                                       : 'bg-slate-100 text-slate-700'
                                   }`}>
-                                    {grade.remarks}
+                                    {grade.remarks || '—'}
                                   </span>
                                 </td>
                               </tr>
@@ -594,28 +698,28 @@ export const PortalModal: React.FC<PortalModalProps> = ({
 
                             {currentStudent.grades.length === 0 && (
                               <tr>
-                                <td colSpan={6} className="p-6 text-center text-slate-400">
+                                <td colSpan={6} className="p-4 text-center text-slate-400">
                                   No subjects enrolled for this school year yet.
                                 </td>
                               </tr>
                             )}
                           </tbody>
-                          <tfoot className="bg-slate-50 font-bold text-slate-900 border-t-2 border-slate-300">
+                          <tfoot className="bg-slate-50 font-bold text-slate-900 border-t-2 border-slate-400">
                             <tr>
-                              <td className="p-3 text-right uppercase tracking-wider text-xs">
+                              <td className="p-2 text-right uppercase tracking-wider text-[11px]">
                                 General Average:
                               </td>
-                              <td colSpan={3} className="p-3 text-center text-slate-400 text-[11px] font-normal">
-                                (Computed across the 3 Academic Terms / Semesters)
+                              <td colSpan={3} className="p-2 text-center text-slate-400 text-[10px] font-normal">
+                                (Average across 3 Academic Terms / Semesters)
                               </td>
-                              <td className="p-3 text-center font-mono-num text-sm text-blue-900">
+                              <td className="p-2 text-center font-mono-num text-sm text-blue-950 font-extrabold">
                                 {currentStudent.generalAverage !== null ? currentStudent.generalAverage.toFixed(2) : '—'}
                               </td>
-                              <td className="p-3 text-center">
-                                <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${
+                              <td className="p-2 text-center">
+                                <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
                                   (currentStudent.generalAverage ?? 0) >= 75
-                                    ? 'bg-emerald-100 text-emerald-800'
-                                    : 'bg-amber-100 text-amber-800'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                    : 'bg-amber-100 text-amber-800 border border-amber-300'
                                 }`}>
                                   {(currentStudent.generalAverage ?? 0) >= 75 ? 'PASSED' : 'PENDING'}
                                 </span>
@@ -625,17 +729,50 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                         </table>
                       </div>
 
-                      {/* Adviser's Evaluation / Remarks */}
-                      <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
-                        <div className="text-xs font-bold uppercase text-slate-700">
-                          Class Adviser's Observation & Remarks:
+                      {/* Grading Scale Legend */}
+                      <div className="text-[10px] text-slate-500 font-mono text-center border-t border-slate-200 pt-1.5 print:text-[9px]">
+                        <strong>Grading Scale:</strong> Outstanding (90–100) · Very Satisfactory (85–89) · Satisfactory (80–84) · Fairly Satisfactory (75–79) · Did Not Meet Expectations (Below 75)
+                      </div>
+
+                      {/* Attendance & Core Values Compact Summary */}
+                      <div className="grid grid-cols-2 gap-2 text-[10px] sm:text-[11px] p-2 bg-slate-50 border border-slate-200 rounded-lg print:bg-white print:border-slate-300">
+                        <div>
+                          <strong className="block text-slate-800 text-[10px] uppercase">Attendance Summary (200 School Days):</strong>
+                          <span className="text-slate-600">
+                            Present: <strong>{currentStudent.attendance.reduce((s, a) => s + a.daysPresent, 0)} days</strong> · 
+                            Absent: <strong>{currentStudent.attendance.reduce((s, a) => s + a.daysAbsent, 0)} days</strong>
+                          </span>
                         </div>
-                        <p className="text-xs text-slate-700 italic">
-                          "{currentStudent.adviserRemarks}"
-                        </p>
-                        <div className="text-[11px] text-slate-500 pt-1 text-right">
-                          Signed: <strong>{currentStudent.adviserName}</strong>, Class Adviser
+                        <div>
+                          <strong className="block text-slate-800 text-[10px] uppercase">Observed Core Values Rating:</strong>
+                          <span className="text-slate-600">
+                            Maka-Diyos: <strong>AO</strong> · Makatao: <strong>AO</strong> · Makakalikasan: <strong>AO</strong> · Makabansa: <strong>AO</strong>
+                          </span>
                         </div>
+                      </div>
+
+                      {/* Adviser Remarks */}
+                      <div className="p-2 bg-slate-50 rounded border border-slate-200 text-[11px] print:bg-white">
+                        <span className="font-bold text-slate-700 uppercase text-[10px] block">Class Adviser's Remarks:</span>
+                        <p className="italic text-slate-800">"{currentStudent.adviserRemarks}"</p>
+                      </div>
+
+                      {/* Official Certification & Signature Blocks */}
+                      <div className="pt-3 border-t border-slate-300 grid grid-cols-2 gap-6 text-center text-[11px]">
+                        <div>
+                          <div className="h-6 border-b border-slate-700 mx-auto max-w-[200px]" />
+                          <div className="font-bold text-slate-900 mt-1 uppercase">{currentStudent.adviserName}</div>
+                          <div className="text-[10px] text-slate-500">Class Adviser / Faculty</div>
+                        </div>
+                        <div>
+                          <div className="h-6 border-b border-slate-700 mx-auto max-w-[200px]" />
+                          <div className="font-bold text-slate-900 mt-1 uppercase">DR. GENER C. DELOS REYES</div>
+                          <div className="text-[10px] text-slate-500">Secondary School Principal IV</div>
+                        </div>
+                      </div>
+
+                      <div className="text-[9px] text-slate-400 text-center font-mono pt-1">
+                        DepEd School Form 9 (SF9) · Infanta National High School (School ID: 301332) · Official Single Page Document
                       </div>
                     </div>
                   )}
@@ -770,10 +907,6 @@ export const PortalModal: React.FC<PortalModalProps> = ({
                     </div>
                   )}
                 </>
-              ) : (
-                <div className="p-12 text-center text-slate-500">
-                  Select or search a student LRN to view academic records.
-                </div>
               )}
             </div>
           )}
